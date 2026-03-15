@@ -1,0 +1,20 @@
+# dependencies
+**/node_modules/
+
+# builds
+**/dist/
+
+# local env
+**/.env
+**/.env.*
+
+# runtime uploads/logs
+backend/uploads/
+backend/server.log
+backend/server.err.log
+backend/*.log
+
+# caches
+.npm-cache/
+**/.npm-cache/
+
