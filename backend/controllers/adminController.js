@@ -2,26 +2,40 @@ const jwt = require("jsonwebtoken");
 
 const loginAdmin = async (req, res) => {
   try {
+    // Basic payload validation
     const adminId = req.body?.adminId;
     const password = req.body?.password;
+    const accessCode = req.body?.accessCode;
 
-    if (typeof adminId !== "string" || typeof password !== "string") {
+    if (
+      typeof adminId !== "string" ||
+      typeof password !== "string" ||
+      typeof accessCode !== "string"
+    ) {
       return res.status(400).json({
         message: "Invalid request body",
-        error: "adminId and password are required",
+        error: "adminId, password, and accessCode are required",
       });
     }
 
     const expectedAdminId = process.env.ADMIN_ID || "admin123";
     const expectedPassword = process.env.ADMIN_PASSWORD || "password123";
+    const expectedAccessCode = process.env.ADMIN_ACCESS_CODE || "123456";
 
-    if (adminId !== expectedAdminId || password !== expectedPassword) {
-      return res.status(401).json({ message: "Invalid Admin ID or Password" });
+    if (
+      adminId !== expectedAdminId ||
+      password !== expectedPassword ||
+      accessCode !== expectedAccessCode
+    ) {
+      return res.status(401).json({
+        message: "Invalid Admin ID, Password, or Access Code",
+      });
     }
 
     const secret = process.env.JWT_SECRET || "dev_secret_change_me";
     const expiresInSeconds = 60 * 60 * 12; // 12 hours
 
+    // Issue admin JWT
     const token = jwt.sign({ role: "admin", adminId }, secret, {
       expiresIn: expiresInSeconds,
     });
@@ -40,4 +54,3 @@ const loginAdmin = async (req, res) => {
 };
 
 module.exports = { loginAdmin };
-

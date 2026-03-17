@@ -7,22 +7,61 @@ const ALLOWED_STATUSES = new Set(["pending", "resolved", "done"]);
 const createComplaint = async (req, res) => {
 
   try {
-
+    // Validate required fields
     const body = req.body || {};
-    const { type, description } = body;
+    const {
+      studentId,
+      studentName,
+      studentEmail,
+      type,
+      description,
+      location,
+    } = body;
 
-    if (!type || !description) {
+    if (
+      !studentId ||
+      !studentName ||
+      !studentEmail ||
+      !type ||
+      !description ||
+      !location
+    ) {
       return res.status(400).json({
         message: "Missing required fields",
-        error: "type and description are required",
+        error:
+          "studentId, studentName, studentEmail, type, description, and location are required",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Missing required file",
+        error: "image is required",
+      });
+    }
+
+    const existingActive = await Complaint.findOne({
+      studentEmail: studentEmail.toLowerCase(),
+      status: { $ne: "resolved" },
+    }).select("_id status submittedAt type description complaintTime");
+    if (existingActive) {
+      return res.status(409).json({
+        message:
+          "You already have an active complaint. Please wait until it is resolved.",
+        data: existingActive,
       });
     }
 
     const complaint = new Complaint({
 
+      studentId,
+      studentName,
+      studentEmail: studentEmail.toLowerCase(),
       type,
       description,
-      image: req.file ? `/uploads/${req.file.filename}` : null
+      location,
+      complaintTime: new Date(),
+      image: `/uploads/${req.file.filename}`
 
     });
 
@@ -44,9 +83,36 @@ const createComplaint = async (req, res) => {
 
 };
 
+/* Public: Check Active Complaint By Email */
+const getActiveComplaintByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const active = await Complaint.findOne({
+      studentEmail: email.toLowerCase(),
+      status: { $ne: "resolved" },
+    }).select("_id status submittedAt type description complaintTime");
+
+    return res.status(200).json({
+      message: active ? "Active complaint found" : "No active complaint",
+      data: active || null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error checking active complaint",
+      error: error?.message ?? String(error),
+    });
+  }
+};
+
 /* Get Complaints */
 const getComplaints = async (req, res) => {
   try {
+    // Admin-only: list all complaints
     const allComplaints = await Complaint.find({}).sort({ submittedAt: -1 });
     return res.status(200).json({
       message:
@@ -68,7 +134,7 @@ const getComplaints = async (req, res) => {
 
 const updateComplaintStatus = async (req, res) => {
   try {
-
+    // Validate id + status, then update
     const { id } = req.params;
     const statusRaw = req.body?.status;
 
@@ -152,4 +218,5 @@ module.exports = {
   getComplaints,
   updateComplaintStatus,
   trackComplaint,
+  getActiveComplaintByEmail,
 };

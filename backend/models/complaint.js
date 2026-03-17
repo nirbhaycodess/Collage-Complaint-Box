@@ -2,6 +2,25 @@ const mongoose = require("mongoose");
 
 const complaintSchema = new mongoose.Schema({
 
+  studentId: {
+    type: String,
+    required: true,
+    trim: true
+  },
+
+  studentName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+
+  studentEmail: {
+    type: String,
+    required: true,
+    trim: true,
+    lowercase: true
+  },
+
   type: {
     type: String,
     required: true
@@ -13,7 +32,18 @@ const complaintSchema = new mongoose.Schema({
   },
 
   image: {
-    type: String
+    type: String,
+    required: true
+  },
+
+  location: {
+    type: String,
+    required: true
+  },
+
+  complaintTime: {
+    type: Date,
+    default: Date.now
   },
 
   status: {
@@ -29,4 +59,4 @@ const complaintSchema = new mongoose.Schema({
 
 });
 
-module.exports = mongoose.model("Complaint", complaintSchema);
+module.exports = mongoose.model("StudentComplaint", complaintSchema);

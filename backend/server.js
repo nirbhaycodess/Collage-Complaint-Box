@@ -11,7 +11,7 @@ const app = express();
 
 connectDB();
 
-// log every incoming request
+// Log every incoming request (useful for dev)
 app.use((req, res, next) => {
   console.log(req.method, req.url);
   next();
@@ -20,9 +20,17 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// API routes
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/admin", adminRoutes);
+
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", schemaVersion: "v2" });
+});
 
 app.get("/", (req, res) => {
   res.send("College Complaint Backend Running");

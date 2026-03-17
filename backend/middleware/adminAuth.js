@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const requireAdmin = (req, res, next) => {
+  // Expect Authorization: Bearer <token>
   const authHeader = req.headers?.authorization || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
@@ -25,4 +26,3 @@ const requireAdmin = (req, res, next) => {
 };
 
 module.exports = { requireAdmin };
-
