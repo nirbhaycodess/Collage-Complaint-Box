@@ -1,6 +1,7 @@
 const Complaint = require("../models/complaint");
 const mongoose = require("mongoose");
 const StudentVerification = require("../models/studentVerification");
+const { uploadComplaintImage } = require("../config/cloudinary");
 
 const ALLOWED_STATUSES = new Set(["pending", "resolved", "done"]);
 
@@ -65,6 +66,16 @@ const createComplaint = async (req, res) => {
       });
     }
 
+    let uploadResult;
+    try {
+      uploadResult = await uploadComplaintImage(req.file);
+    } catch (uploadError) {
+      return res.status(500).json({
+        message: "Image upload failed",
+        error: uploadError?.message ?? String(uploadError),
+      });
+    }
+
     const complaint = new Complaint({
 
       studentId,
@@ -74,7 +85,7 @@ const createComplaint = async (req, res) => {
       description,
       location,
       complaintTime: new Date(),
-      image: `/uploads/${req.file.filename}`
+      image: uploadResult.secure_url
 
     });
 

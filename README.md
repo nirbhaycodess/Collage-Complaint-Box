@@ -10,7 +10,7 @@ Below is the full workflow and how each part connects.
 **High-Level Workflow**
 1. Student opens the frontend and signs in with Google.
 2. Student submits a complaint with details + image + location.
-3. Backend stores the complaint in MongoDB and saves the image to disk.
+3. Backend stores the complaint in MongoDB and uploads the image to Cloudinary.
 4. Admin logs in with a password + access code.
 5. Admin views all complaints and marks them as resolved.
 
@@ -49,8 +49,9 @@ Below is the full workflow and how each part connects.
   - `GET /api/complaints`
 - Updates complaint status:
   - `PATCH /api/complaints/:id/status`
-- Shows uploaded image from:
-  - `${API_BASE}${complaint.image}`
+- Shows uploaded image using:
+  - Cloudinary URL directly (for new uploads), or
+  - `${API_BASE}${complaint.image}` for legacy local `/uploads/...` paths.
 
 **Config**
 - Frontend reads backend base URL from:
@@ -64,7 +65,7 @@ Below is the full workflow and how each part connects.
 **Server Setup (`backend/server.js`)**
 - Connects to MongoDB (`backend/config/db.js`).
 - Sets JSON parsing + CORS.
-- Serves uploads from `/uploads`.
+- Serves uploads from `/uploads` (legacy local files only).
 - Registers routes:
   - `/api/complaints`
   - `/api/admin`
@@ -117,6 +118,10 @@ Backend:
 - `ADMIN_PASSWORD`
 - `ADMIN_ACCESS_CODE`
 - `JWT_SECRET`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_FOLDER` (optional, default: `college-complaints`)
 
 Frontend:
 - `VITE_API_BASE_URL`

@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
 
 const { requireAdmin } = require("../middleware/adminAuth");
 const {
@@ -13,23 +11,38 @@ const {
   getActiveComplaintByEmail,
 } = require("../controllers/complaintcontroller");
 
-// Ensure uploads folder exists
-const uploadDir = path.join(__dirname, "..", "uploads");
-fs.mkdirSync(uploadDir, { recursive: true });
-
-// Store uploaded images on disk
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file?.mimetype?.startsWith("image/")) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error("Only image uploads are allowed"));
   },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
 });
 
-const upload = multer({ storage });
+router.post("/submit", (req, res, next) => {
+  upload.single("image")(req, res, (error) => {
+    if (!error) {
+      next();
+      return;
+    }
 
-router.post("/submit", upload.single("image"), createComplaint);
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        message: "Invalid image upload",
+        error: "Image must be 5 MB or smaller.",
+      });
+    }
+
+    return res.status(400).json({
+      message: "Invalid image upload",
+      error: error?.message ?? String(error),
+    });
+  });
+}, createComplaint);
 
 // public: track complaint status
 router.get("/track/:id", trackComplaint);
