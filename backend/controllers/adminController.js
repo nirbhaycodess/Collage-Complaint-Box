@@ -18,9 +18,9 @@ const loginAdmin = async (req, res) => {
       });
     }
 
-    const expectedAdminId = process.env.ADMIN_ID || "admin123";
-    const expectedPassword = process.env.ADMIN_PASSWORD || "password123";
-    const expectedAccessCode = process.env.ADMIN_ACCESS_CODE || "123456";
+    const expectedAdminId = process.env.ADMIN_ID ;
+    const expectedPassword = process.env.ADMIN_PASSWORD ;        
+    const expectedAccessCode = process.env.ADMIN_ACCESS_CODE ; 
 
     if (
       adminId !== expectedAdminId ||

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import bgComplaint from "../assets/bgcomplaint.png.jpeg";
@@ -7,7 +7,7 @@ import logo from "../assets/logo.png";
 
 // Backend base URL (override with VITE_API_BASE_URL in .env)
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://10.56.212.140:5000";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 function ComplaintPage() {
 
@@ -189,17 +189,17 @@ function ComplaintPage() {
       <div className="absolute bottom-[-140px] left-1/4 h-80 w-80 rounded-full bg-emerald-400/20 blur-3xl" />
 
       <div className="relative min-h-screen flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-2xl bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="w-full max-w-2xl bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl">
           <div className="mb-6 space-y-4">
             <img
               src={logo}
               alt="University Logo"
               className="w-28 md:w-36 bg-transparent brightness-125 contrast-125 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
             />
-            <h2 className="text-2xl md:text-3xl font-semibold">
+            <h2 className="text-2xl md:text-3xl font-semibold text-white">
               Submit Complaint To The College Authorities
             </h2>
-            <p className="text-slate-300">
+            <p className="text-slate-100">
               Share your concern safely. Required fields help us act faster.
             </p>
           </div>
@@ -211,23 +211,23 @@ function ComplaintPage() {
           </div>
         )}
         {activeComplaint && (
-          <div className="mb-6 rounded-lg border border-white/10 bg-white/5 p-4 text-slate-200">
+          <div className="mb-6 rounded-lg border border-white/20 bg-white/10 p-4 text-slate-100">
             <p className="font-semibold">Active Complaint Summary</p>
             <p className="mt-2 text-sm">
-              <span className="text-slate-400">Type:</span>{" "}
-              {activeComplaint.type || "—"}
+              <span className="text-slate-200">Type:</span>{" "}
+              {activeComplaint.type || "â€”"}
             </p>
             <p className="text-sm">
-              <span className="text-slate-400">Description:</span>{" "}
-              {activeComplaint.description || "—"}
+              <span className="text-slate-200">Description:</span>{" "}
+              {activeComplaint.description || "â€”"}
             </p>
             <p className="text-sm">
-              <span className="text-slate-400">Time:</span>{" "}
+              <span className="text-slate-200">Time:</span>{" "}
               {activeComplaint.complaintTime
                 ? new Date(activeComplaint.complaintTime).toLocaleString()
                 : activeComplaint.submittedAt
                   ? new Date(activeComplaint.submittedAt).toLocaleString()
-                  : "—"}
+                  : "â€”"}
             </p>
           </div>
         )}
@@ -240,7 +240,7 @@ function ComplaintPage() {
         )}
 
         {!user && (
-          <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4 text-center">
+          <div className="mb-6 rounded-xl border border-white/20 bg-white/10 p-4 text-center">
             <p className="mb-3 font-semibold">
               Please login from the Dashboard first
             </p>
@@ -260,7 +260,7 @@ function ComplaintPage() {
             placeholder="Student ID"
             value={studentId}
             onChange={(e) => setStudentId(e.target.value)}
-            className="w-full rounded-lg bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
             disabled={!user || loading || Boolean(activeBlock)}
             required
           />
@@ -270,14 +270,14 @@ function ComplaintPage() {
               type="text"
               value={user?.name || ""}
               placeholder="Student Name"
-              className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-slate-200"
+              className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-slate-100"
               disabled
             />
             <input
               type="email"
               value={user?.email || ""}
               placeholder="Student Email"
-              className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-slate-200"
+              className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-slate-100"
               disabled
             />
           </div>
@@ -304,7 +304,7 @@ function ComplaintPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows="5"
-            className="w-full rounded-lg bg-white/10 border border-white/10 px-4 py-3 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
             disabled={!user || loading || Boolean(activeBlock)}
             required
           />
@@ -319,7 +319,7 @@ function ComplaintPage() {
               {location ? "Location Captured" : "Get Location"}
             </button>
             {locationStatus && (
-              <p className="text-sm text-slate-300">{locationStatus}</p>
+              <p className="text-sm text-slate-200">{locationStatus}</p>
             )}
             {location && (
               <p className="text-sm text-slate-200">Location: {location}</p>
@@ -328,7 +328,7 @@ function ComplaintPage() {
 
           {/* File Upload */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-200">
+            <label className="text-sm font-semibold text-slate-100">
               Upload Evidence (Required)
             </label>
             <input
@@ -336,7 +336,7 @@ function ComplaintPage() {
               type="file"
               accept="image/*"
               onChange={(e) => setFile(e.target.files[0])}
-              className="w-full rounded-lg border border-white/20 bg-white/10 text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-900 hover:file:bg-amber-200"
+              className="w-full rounded-lg border border-white/20 bg-white/10 text-slate-100 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-900 hover:file:bg-amber-100"
               disabled={!user || loading || Boolean(activeBlock)}
               required
             />
@@ -351,7 +351,7 @@ function ComplaintPage() {
           <button
             type="submit"
             disabled={!user || loading || Boolean(activeBlock)}
-            className="w-full bg-amber-300 text-slate-900 font-semibold py-3 rounded-lg shadow-lg hover:bg-amber-200 transition"
+            className="w-full bg-amber-300 text-slate-900 font-semibold py-3 rounded-lg shadow-lg hover:bg-amber-100 transition"
           >
             {loading ? "Submitting..." : "Submit Complaint"}
           </button>
@@ -367,3 +367,4 @@ function ComplaintPage() {
 }
 
 export default ComplaintPage;
+
