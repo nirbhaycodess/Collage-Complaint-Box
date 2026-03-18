@@ -9,7 +9,7 @@ import bgMobile from "../assets/bgM.png";
 
 // Backend base URL (override with VITE_API_BASE_URL in .env)
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  import.meta.env.VITE_API_BASE_URL || "https://speakup-invertians.onrender.com";
 
 function Dashboard() {
   const navigate = useNavigate();
