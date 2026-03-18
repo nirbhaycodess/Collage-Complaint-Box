@@ -20,6 +20,10 @@ function Dashboard() {
   const [adminAccessCode, setAdminAccessCode] = useState("");
   const [adminError, setAdminError] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState("unknown");
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+  const [idCardFile, setIdCardFile] = useState(null);
 
   useEffect(() => {
     // Restore student session (if any)
@@ -44,7 +48,66 @@ function Dashboard() {
     // Clear local student session
     setStudentUser(null);
     localStorage.removeItem("ccb_student_user");
+    setVerificationStatus("unknown");
+    setIdCardFile(null);
   };
+
+  const fetchVerificationStatus = async (email) => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/students/verify/status`, {
+        params: { email },
+      });
+      setVerificationStatus(res.data?.verified ? "verified" : "unverified");
+    } catch (error) {
+      console.log(error);
+      setVerificationStatus("unverified");
+    }
+  };
+
+  const handleVerifyStudent = async () => {
+    if (!studentUser?.email || !studentUser?.name) {
+      setVerifyError("Please sign in first.");
+      return;
+    }
+    if (!idCardFile) {
+      setVerifyError("Please upload your ID card.");
+      return;
+    }
+    try {
+      setVerifyLoading(true);
+      setVerifyError("");
+      const formData = new FormData();
+      formData.append("studentEmail", studentUser.email);
+      formData.append("studentName", studentUser.name);
+      formData.append("idCard", idCardFile);
+
+      const res = await axios.post(
+        `${API_BASE}/api/students/verify`,
+        formData
+      );
+
+      if (res.data?.verified) {
+        setVerificationStatus("verified");
+      } else {
+        setVerificationStatus("unverified");
+        setVerifyError(
+          "Verification failed. Please upload a clearer ID card."
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      setVerifyError("Verification failed. Please try again.");
+      setVerificationStatus("unverified");
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (studentUser?.email) {
+      fetchVerificationStatus(studentUser.email);
+    }
+  }, [studentUser?.email]);
 
   const handleAdminLogin = async (event) => {
     event.preventDefault();
@@ -199,10 +262,41 @@ function Dashboard() {
                         {studentUser.email}
                       </p>
                     </div>
+                    <div className="rounded-xl border border-white/20 bg-white/10 p-4 space-y-3">
+                      <p className="text-sm font-semibold text-slate-200">
+                        Student Verification
+                      </p>
+                      <p className="text-sm text-slate-200">
+                        Upload your college ID card to verify your account.
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => setIdCardFile(event.target.files[0])}
+                        className="w-full rounded-lg border border-white/20 bg-white/10 text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-900 hover:file:bg-amber-100"
+                      />
+                      {verifyError && (
+                        <p className="text-xs text-amber-200">{verifyError}</p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleVerifyStudent}
+                        disabled={verifyLoading}
+                        className="w-full bg-amber-300 text-slate-900 font-semibold py-2.5 rounded-lg shadow-lg hover:bg-amber-100 transition"
+                      >
+                        {verifyLoading ? "Verifying..." : "Verify Student"}
+                      </button>
+                      {verificationStatus === "verified" && (
+                        <p className="text-xs text-emerald-200">
+                          Verified. You can continue now.
+                        </p>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => navigate("/complaint")}
-                      className="w-full bg-amber-300 text-slate-900 font-semibold py-3 rounded-lg shadow-lg hover:bg-amber-100 transition"
+                      disabled={verificationStatus !== "verified"}
+                      className="w-full bg-amber-300 text-slate-900 font-semibold py-3 rounded-lg shadow-lg hover:bg-amber-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       Continue to Complaint Form
                     </button>

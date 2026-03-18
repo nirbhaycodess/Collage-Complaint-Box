@@ -1,5 +1,6 @@
 const Complaint = require("../models/complaint");
 const mongoose = require("mongoose");
+const StudentVerification = require("../models/studentVerification");
 
 const ALLOWED_STATUSES = new Set(["pending", "resolved", "done"]);
 
@@ -49,6 +50,18 @@ const createComplaint = async (req, res) => {
         message:
           "You already have an active complaint. Please wait until it is resolved.",
         data: existingActive,
+      });
+    }
+
+    const verified = await StudentVerification.findOne({
+      studentEmail: studentEmail.toLowerCase(),
+      verified: true,
+    }).select("_id verified");
+
+    if (!verified) {
+      return res.status(403).json({
+        message:
+          "Student verification required. Please upload your ID card and verify before submitting a complaint.",
       });
     }
 

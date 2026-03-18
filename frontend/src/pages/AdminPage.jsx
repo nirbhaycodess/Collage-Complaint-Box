@@ -20,6 +20,8 @@ function AdminDashboard() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
   const [locationNames, setLocationNames] = useState({});
+  const [studentIdFilter, setStudentIdFilter] = useState("");
+  const [studentNameFilter, setStudentNameFilter] = useState("");
 
   const getAuthHeaders = () => {
     // Pull admin JWT from session storage
@@ -33,8 +35,13 @@ function AdminDashboard() {
 
       setLoading(true);
       setError("");
+      const params = {};
+      if (studentIdFilter.trim()) params.studentId = studentIdFilter.trim();
+      if (studentNameFilter.trim()) params.studentName = studentNameFilter.trim();
+
       const res = await axios.get(`${API_BASE}/api/complaints`, {
         headers: getAuthHeaders(),
+        params,
       });
 
       const list = Array.isArray(res.data) ? res.data : res.data?.data;
@@ -75,6 +82,14 @@ function AdminDashboard() {
     }
   };
 
+  const resolveImageUrl = (value) => {
+    if (!value) return "";
+    if (value.startsWith("http://") || value.startsWith("https://")) {
+      return value;
+    }
+    return `${API_BASE}${value}`;
+  };
+
   const logout = () => {
     // Clear admin session and return to login
     sessionStorage.removeItem("adminToken");
@@ -84,6 +99,10 @@ function AdminDashboard() {
   useEffect(() => {
     fetchComplaints();
   }, []);
+
+  useEffect(() => {
+    fetchComplaints();
+  }, [studentIdFilter, studentNameFilter]);
 
   useEffect(() => {
     // Reverse geocode coordinates for friendlier admin display
@@ -193,7 +212,7 @@ function AdminDashboard() {
           }
         }
       `}</style>
-      <div className="absolute inset-0 bg-slate-950/70" />
+      <div className="absolute inset-0 bg-slate-950/80" />
       <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-amber-400/30 blur-3xl" />
       <div className="absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-sky-400/30 blur-3xl" />
       <div className="absolute bottom-[-140px] left-1/4 h-80 w-80 rounded-full bg-emerald-400/20 blur-3xl" />
@@ -207,13 +226,13 @@ function AdminDashboard() {
                 alt="University Logo"
                 className="w-24 md:w-32 bg-transparent brightness-125 contrast-125 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
               />
-              <p className="text-sm text-slate-200 tracking-wide uppercase">
+              <p className="text-sm text-slate-100 tracking-wide uppercase">
                 Admin Workspace
               </p>
               <h1 className="text-3xl md:text-4xl font-semibold">
                 Complaint Dashboard
               </h1>
-              <p className="text-slate-200 max-w-2xl">
+              <p className="text-slate-100 max-w-2xl">
                 Review new complaints, check Verification , and mark them as resolved
                 from a single streamlined view.
               </p>
@@ -228,31 +247,31 @@ function AdminDashboard() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-5">
-              <p className="text-sm text-slate-200">New</p>
+            <div className="rounded-2xl border border-white/20 bg-white/15 p-5">
+              <p className="text-sm text-slate-100">To be Resolved</p>
               <p className="text-3xl font-semibold">{newCount}</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-5">
-              <p className="text-sm text-slate-200">Resolved</p>
+            <div className="rounded-2xl border border-white/20 bg-white/15 p-5">
+              <p className="text-sm text-slate-100">Resolved</p>
               <p className="text-3xl font-semibold">{resolvedCount}</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-5">
-              <p className="text-sm text-slate-200">Total</p>
+            <div className="rounded-2xl border border-white/20 bg-white/15 p-5">
+              <p className="text-sm text-slate-100">Total</p>
               <p className="text-3xl font-semibold">{totalCount}</p>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+          <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl">
             <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
               <h2 className="text-xl font-semibold">All Complaints</h2>
-              <span className="text-sm text-slate-200">
+              <span className="text-sm text-slate-100">
                 Showing: {filteredComplaints.length}
               </span>
             </div>
 
             <div className="grid gap-4 md:grid-cols-[1.4fr_0.8fr_0.8fr_0.7fr] mb-6">
               <label className="block">
-                <span className="text-xs uppercase tracking-wide text-slate-200">
+                <span className="text-xs uppercase tracking-wide text-slate-100">
                   Search
                 </span>
                 <input
@@ -260,18 +279,44 @@ function AdminDashboard() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search by type or description"
-                  className="mt-2 w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                  className="mt-2 w-full rounded-lg bg-white/15 border border-white/30 px-4 py-3 text-white placeholder:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-200"
                 />
               </label>
 
               <label className="block">
-                <span className="text-xs uppercase tracking-wide text-slate-200">
+                <span className="text-xs uppercase tracking-wide text-slate-100">
+                  Student Name
+                </span>
+                <input
+                  type="text"
+                  value={studentNameFilter}
+                  onChange={(event) => setStudentNameFilter(event.target.value)}
+                  placeholder="Filter by student name"
+                  className="mt-2 w-full rounded-lg bg-white/15 border border-white/30 px-4 py-3 text-white placeholder:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-xs uppercase tracking-wide text-slate-100">
+                  Student ID
+                </span>
+                <input
+                  type="text"
+                  value={studentIdFilter}
+                  onChange={(event) => setStudentIdFilter(event.target.value)}
+                  placeholder="Filter by student ID"
+                  className="mt-2 w-full rounded-lg bg-white/15 border border-white/30 px-4 py-3 text-white placeholder:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-xs uppercase tracking-wide text-slate-100">
                   Status
                 </span>
                 <select
                   value={statusFilter}
                   onChange={(event) => setStatusFilter(event.target.value)}
-                  className="mt-2 w-full rounded-lg bg-white border border-white/20 px-4 py-3 text-slate-900 shadow-md focus:outline-none focus:ring-2 focus:ring-sky-300"
+                  className="mt-2 w-full rounded-lg bg-white border border-white/30 px-4 py-3 text-slate-900 shadow-md focus:outline-none focus:ring-2 focus:ring-sky-200"
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending</option>
@@ -280,13 +325,13 @@ function AdminDashboard() {
               </label>
 
               <label className="block">
-                <span className="text-xs uppercase tracking-wide text-slate-200">
+                <span className="text-xs uppercase tracking-wide text-slate-100">
                   Type
                 </span>
                 <select
                   value={typeFilter}
                   onChange={(event) => setTypeFilter(event.target.value)}
-                  className="mt-2 w-full rounded-lg bg-white border border-white/20 px-4 py-3 text-slate-900 shadow-md focus:outline-none focus:ring-2 focus:ring-sky-300"
+                  className="mt-2 w-full rounded-lg bg-white border border-white/30 px-4 py-3 text-slate-900 shadow-md focus:outline-none focus:ring-2 focus:ring-sky-200"
                 >
                   <option value="all">All Types</option>
                   {typeOptions.map((type) => (
@@ -298,31 +343,32 @@ function AdminDashboard() {
               </label>
 
               <label className="block">
-                <span className="text-xs uppercase tracking-wide text-slate-200">
+                <span className="text-xs uppercase tracking-wide text-slate-100">
                   Sort
                 </span>
                 <select
                   value={sortOrder}
                   onChange={(event) => setSortOrder(event.target.value)}
-                  className="mt-2 w-full rounded-lg bg-white border border-white/20 px-4 py-3 text-slate-900 shadow-md focus:outline-none focus:ring-2 focus:ring-sky-300"
+                  className="mt-2 w-full rounded-lg bg-white border border-white/30 px-4 py-3 text-slate-900 shadow-md focus:outline-none focus:ring-2 focus:ring-sky-200"
                 >
                   <option value="newest">Newest</option>
                   <option value="oldest">Oldest</option>
                 </select>
               </label>
+
             </div>
 
-            {loading && <p className="text-slate-200 mb-4">Loading...</p>}
+            {loading && <p className="text-slate-100 mb-4">Loading...</p>}
             {error && <p className="text-red-300 mb-4">{error}</p>}
 
             {!loading && !error && complaints.length === 0 && (
-              <div className="text-center py-12 text-slate-200">
+              <div className="text-center py-12 text-slate-100">
                 No complaints yet. You are all caught up.
               </div>
             )}
 
             {!loading && !error && complaints.length > 0 && filteredComplaints.length === 0 && (
-              <div className="text-center py-12 text-slate-200">
+              <div className="text-center py-12 text-slate-100">
                 No complaints match your filters.
               </div>
             )}
@@ -331,51 +377,51 @@ function AdminDashboard() {
               {sortedComplaints.map((complaint) => (
                 <div
                   key={complaint._id}
-                  className="rounded-xl border border-white/10 bg-white/10 p-5 space-y-4"
+                  className="rounded-xl border border-white/20 bg-white/15 p-5 space-y-4"
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-slate-200">
+                      <p className="text-xs uppercase tracking-wide text-slate-100">
                         Complaint Type
                       </p>
                       <p className="text-lg font-semibold">
                         {complaint.type}
                       </p>
                     </div>
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/20 px-4 py-1 text-sm">
-                      <span className="text-slate-200">Status</span>
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/30 px-4 py-1 text-sm">
+                      <span className="text-slate-100">Status</span>
                       <span className="font-semibold text-white">
                         {complaint.status}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-slate-100">
+                  <p className="text-white">
                     {complaint.description}
                   </p>
 
-                  <div className="grid gap-2 text-sm text-slate-200 md:grid-cols-2">
+                  <div className="grid gap-2 text-sm text-slate-100 md:grid-cols-2">
                     <p>
-                      <span className="text-slate-300">Student ID:</span>{" "}
+                      <span className="text-slate-200">Student ID:</span>{" "}
                       {complaint.studentId || "â€”"}
                     </p>
                     <p>
-                      <span className="text-slate-300">Student Name:</span>{" "}
+                      <span className="text-slate-200">Student Name:</span>{" "}
                       {complaint.studentName || "â€”"}
                     </p>
                     <p>
-                      <span className="text-slate-300">Email:</span>{" "}
+                      <span className="text-slate-200">Email:</span>{" "}
                       {complaint.studentEmail || "â€”"}
                     </p>
                     <p>
-                      <span className="text-slate-300">Location:</span>{" "}
+                      <span className="text-slate-200">Location:</span>{" "}
                       {complaint.location
                         ? locationNames[complaint.location] ||
                           complaint.location
                         : "â€”"}
                     </p>
                     <p>
-                      <span className="text-slate-300">Submitted At:</span>{" "}
+                      <span className="text-slate-200">Submitted At:</span>{" "}
                       {complaint.submittedAt
                         ? new Date(complaint.submittedAt).toLocaleString()
                         : "â€”"}
@@ -384,9 +430,9 @@ function AdminDashboard() {
 
                   {complaint.image && (
                     <div className="space-y-2">
-                      <p className="text-sm text-slate-200">Verification</p>
+                      <p className="text-sm text-slate-100">Verification</p>
                       <img
-                        src={`${API_BASE}${complaint.image}`}
+                        src={resolveImageUrl(complaint.image)}
                         alt="complaint proof"
                         className="w-full max-w-sm rounded-lg border border-white/10"
                       />
@@ -416,6 +462,5 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
-
 
 
