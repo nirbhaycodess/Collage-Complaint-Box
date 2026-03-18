@@ -2,7 +2,9 @@ const Tesseract = require("tesseract.js");
 const StudentVerification = require("../models/studentVerification");
 
 const UNIVERSITY_NAME =
-  process.env.UNIVERSITY_NAME || "Invertians University";
+  process.env.UNIVERSITY_NAME || "Invertis University";
+const UNIVERSITY_FALLBACK =
+  process.env.UNIVERSITY_FALLBACK || "Invertis";
 
 const normalize = (value) =>
   String(value || "")
@@ -42,9 +44,10 @@ const verifyStudentId = async (req, res) => {
     }
 
     const ocrText = await runOcr(req.file.buffer);
-    const hasUniversity = normalize(ocrText).includes(
-      normalize(UNIVERSITY_NAME)
-    );
+    const normalizedText = normalize(ocrText);
+    const hasUniversity =
+      normalizedText.includes(normalize(UNIVERSITY_NAME)) ||
+      normalizedText.includes(normalize(UNIVERSITY_FALLBACK));
     const hasName = extractNameMatches(studentName, ocrText);
 
     const verified = Boolean(hasUniversity && hasName);
