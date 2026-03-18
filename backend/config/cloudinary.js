@@ -14,10 +14,30 @@ const hasCloudinaryKeys = Boolean(
 );
 const isCloudinaryConfigured = hasCloudinaryUrl || hasCloudinaryKeys;
 
+const parseCloudinaryUrl = (urlValue) => {
+  try {
+    const parsed = new URL(urlValue);
+    if (parsed.protocol !== "cloudinary:") return null;
+
+    return {
+      cloud_name: parsed.hostname,
+      api_key: decodeURIComponent(parsed.username || ""),
+      api_secret: decodeURIComponent(parsed.password || ""),
+    };
+  } catch (error) {
+    return null;
+  }
+};
+
 if (isCloudinaryConfigured) {
   if (hasCloudinaryUrl) {
-    cloudinary.config(CLOUDINARY_URL);
-    cloudinary.config({ secure: true });
+    const parsedConfig = parseCloudinaryUrl(CLOUDINARY_URL);
+    if (parsedConfig) {
+      cloudinary.config({
+        ...parsedConfig,
+        secure: true,
+      });
+    }
   } else {
     cloudinary.config({
       cloud_name: CLOUDINARY_CLOUD_NAME,
@@ -32,6 +52,13 @@ const uploadComplaintImage = async (file) => {
   if (!isCloudinaryConfigured) {
     throw new Error(
       "Cloudinary is not configured. Set CLOUDINARY_URL or CLOUDINARY_CLOUD_NAME/CLOUDINARY_API_KEY/CLOUDINARY_API_SECRET."
+    );
+  }
+
+  const activeConfig = cloudinary.config();
+  if (!activeConfig?.cloud_name || !activeConfig?.api_key || !activeConfig?.api_secret) {
+    throw new Error(
+      "Invalid Cloudinary configuration. Verify CLOUDINARY_URL format: cloudinary://<api_key>:<api_secret>@<cloud_name>"
     );
   }
 
