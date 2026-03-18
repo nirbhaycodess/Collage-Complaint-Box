@@ -143,6 +143,8 @@ function ComplaintPage() {
     } catch (e) {
       console.log(e);
       const message = e?.response?.data?.message;
+      const detail = e?.response?.data?.error;
+      const errorText = [message, detail].filter(Boolean).join(": ");
       if (e?.response?.status === 409) {
         setActiveBlock(
           message ||
@@ -157,7 +159,7 @@ function ComplaintPage() {
         );
       } else {
         setError(
-          message || "Failed to submit complaint. Is the backend running?"
+          errorText || "Failed to submit complaint. Is the backend running?"
         );
       }
     } finally {
