@@ -18,6 +18,11 @@ const studentVerificationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    verificationStatus: {
+      type: String,
+      enum: ["yes", "no"],
+      default: "no",
+    },
     ocrText: {
       type: String,
       default: "",

@@ -51,20 +51,24 @@ const verifyStudentId = async (req, res) => {
     const hasName = extractNameMatches(studentName, ocrText);
 
     const verified = Boolean(hasUniversity && hasName);
+    let record = null;
 
-    const record = await StudentVerification.findOneAndUpdate(
-      { studentEmail: studentEmail.toLowerCase() },
-      {
-        $set: {
-          studentEmail: studentEmail.toLowerCase(),
-          studentName,
-          verified,
-          ocrText,
-          verifiedAt: verified ? new Date() : null,
+    if (verified) {
+      record = await StudentVerification.findOneAndUpdate(
+        { studentEmail: studentEmail.toLowerCase() },
+        {
+          $set: {
+            studentEmail: studentEmail.toLowerCase(),
+            studentName,
+            verified: true,
+            verificationStatus: "yes",
+            ocrText,
+            verifiedAt: new Date(),
+          },
         },
-      },
-      { upsert: true, new: true }
-    );
+        { upsert: true, new: true }
+      );
+    }
 
     return res.status(200).json({
       message: verified
@@ -76,10 +80,11 @@ const verifyStudentId = async (req, res) => {
         name: hasName,
       },
       data: {
-        studentEmail: record.studentEmail,
-        studentName: record.studentName,
-        verified: record.verified,
-        verifiedAt: record.verifiedAt,
+        studentEmail: record?.studentEmail || studentEmail.toLowerCase(),
+        studentName: record?.studentName || studentName,
+        verified: record?.verified || false,
+        verificationStatus: record?.verificationStatus || "no",
+        verifiedAt: record?.verifiedAt || null,
       },
     });
   } catch (error) {
@@ -99,10 +104,11 @@ const getVerificationStatus = async (req, res) => {
 
     const record = await StudentVerification.findOne({
       studentEmail: email.toLowerCase(),
-    }).select("studentEmail studentName verified verifiedAt");
+    }).select("studentEmail studentName verified verificationStatus verifiedAt");
 
     return res.status(200).json({
       verified: Boolean(record?.verified),
+      verificationStatus: record?.verificationStatus || "no",
       data: record || null,
     });
   } catch (error) {
