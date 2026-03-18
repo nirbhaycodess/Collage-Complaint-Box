@@ -260,6 +260,7 @@ function ComplaintPage() {
             placeholder="Student ID"
             value={studentId}
             onChange={(e) => setStudentId(e.target.value)}
+            maxLength={15}
             className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
             disabled={!user || loading || Boolean(activeBlock)}
             required
