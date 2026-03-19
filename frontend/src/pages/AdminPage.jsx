@@ -551,30 +551,29 @@ function AdminDashboard() {
                             ).toLocaleString()}`
                           : "No response sent yet."}
                       </p>
-                      {String(complaint.adminResponse || "").trim() === "" && (
-                        <button
-                          onClick={() => updateResponse(complaint._id)}
-                          disabled={responseSavingId === complaint._id}
-                          className="bg-sky-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-sky-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                          {responseSavingId === complaint._id
-                            ? "Sending..."
-                            : "Send Response"}
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {String(complaint.adminResponse || "").trim() === "" && (
+                          <button
+                            onClick={() => updateResponse(complaint._id)}
+                            disabled={responseSavingId === complaint._id}
+                            className="bg-sky-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-sky-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {responseSavingId === complaint._id
+                              ? "Sending..."
+                              : "Send Response"}
+                          </button>
+                        )}
+                        {complaint.status !== "resolved" && (
+                          <button
+                            onClick={() => updateStatus(complaint._id, "resolved")}
+                            className="bg-emerald-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-emerald-200 transition"
+                          >
+                            Mark Resolved
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-
-                  {complaint.status !== "resolved" && (
-                    <div className="flex items-center justify-end">
-                      <button
-                        onClick={() => updateStatus(complaint._id, "resolved")}
-                        className="bg-emerald-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-emerald-200 transition"
-                      >
-                        Mark Resolved
-                      </button>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
