@@ -8,7 +8,9 @@ const UNIVERSITY_FALLBACK =
 
 const normalize = (value) =>
   String(value || "")
-    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("en")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -62,8 +64,9 @@ const runOcr = async (buffer) => {
 const verifyStudentId = async (req, res) => {
   try {
     const { studentEmail, studentName } = req.body || {};
+    const studentNameInput = String(studentName || "").trim();
 
-    if (!studentEmail || !studentName) {
+    if (!studentEmail || !studentNameInput) {
       return res.status(400).json({
         message: "Missing required fields",
         error: "studentEmail and studentName are required",
@@ -91,7 +94,7 @@ const verifyStudentId = async (req, res) => {
         ocrText,
         minUniversityChunkLength
       );
-    const nameMatch = extractNameMatches(studentName, ocrText);
+    const nameMatch = extractNameMatches(studentNameInput, ocrText);
     const requiredNameMatches = 1;
     const hasName = nameMatch.matchedTokens >= requiredNameMatches;
 
@@ -104,7 +107,7 @@ const verifyStudentId = async (req, res) => {
         {
           $set: {
             studentEmail: studentEmail.toLowerCase(),
-            studentName,
+            studentName: studentNameInput,
             verified: true,
             verificationStatus: "yes",
             ocrText,
@@ -128,7 +131,7 @@ const verifyStudentId = async (req, res) => {
       },
       data: {
         studentEmail: record?.studentEmail || studentEmail.toLowerCase(),
-        studentName: record?.studentName || studentName,
+        studentName: record?.studentName || studentNameInput,
         verified: record?.verified || false,
         verificationStatus: record?.verificationStatus || "no",
         verifiedAt: record?.verifiedAt || null,
