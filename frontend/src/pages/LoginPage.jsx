@@ -126,14 +126,7 @@ function Dashboard() {
       }
     } catch (error) {
       console.log(error);
-      const statusCode = error?.response?.status;
-      const endpoint = `${API_BASE}/api/students/verify`;
-      const baseMessage =
-        error?.response?.data?.message ||
-        "Verification failed. Please try again.";
-      setVerifyError(
-        `${baseMessage}${statusCode ? ` (HTTP ${statusCode})` : ""}. Endpoint: ${endpoint}`
-      );
+      setVerifyError("Verification failed. Please try again.");
       setVerificationStatus("unverified");
       const reverifyKey = getReverifyKey(studentUser?.email);
       if (reverifyKey) {
