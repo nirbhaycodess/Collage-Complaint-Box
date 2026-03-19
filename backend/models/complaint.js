@@ -52,6 +52,17 @@ const complaintSchema = new mongoose.Schema({
     default: "pending"
   },
 
+  adminResponse: {
+    type: String,
+    trim: true,
+    default: ""
+  },
+
+  adminResponseAt: {
+    type: Date,
+    default: null
+  },
+
   submittedAt: {
     type: Date,
     default: Date.now

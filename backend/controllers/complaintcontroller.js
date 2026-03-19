@@ -191,7 +191,9 @@ const getActiveComplaintByEmail = async (req, res) => {
     const active = await Complaint.findOne({
       studentEmail: email.toLowerCase(),
       status: { $ne: "resolved" },
-    }).select("_id status submittedAt type description complaintTime");
+    }).select(
+      "_id status submittedAt type description complaintTime adminResponse adminResponseAt"
+    );
 
     return res.status(200).json({
       message: active ? "Active complaint found" : "No active complaint",
@@ -200,6 +202,35 @@ const getActiveComplaintByEmail = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: "Error checking active complaint",
+      error: error?.message ?? String(error),
+    });
+  }
+};
+
+/* Public: Get Latest Complaint By Email */
+const getLatestComplaintByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const latest = await Complaint.findOne({
+      studentEmail: email.toLowerCase(),
+    })
+      .sort({ submittedAt: -1, complaintTime: -1 })
+      .select(
+        "_id status submittedAt type description complaintTime adminResponse adminResponseAt"
+      );
+
+    return res.status(200).json({
+      message: latest ? "Latest complaint found" : "No complaint found",
+      data: latest || null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error fetching latest complaint",
       error: error?.message ?? String(error),
     });
   }
@@ -280,6 +311,52 @@ const updateComplaintStatus = async (req, res) => {
   }
 };
 
+/* Update Complaint Response (Admin) */
+const updateComplaintResponse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const responseRaw = req.body?.adminResponse;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid complaint id" });
+    }
+
+    if (typeof responseRaw !== "string" || responseRaw.trim() === "") {
+      return res.status(400).json({
+        message: "Missing required field",
+        error: "adminResponse is required",
+      });
+    }
+
+    const complaint = await Complaint.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          adminResponse: responseRaw.trim(),
+          adminResponseAt: new Date(),
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!complaint) {
+      return res.status(404).json({
+        message: "Complaint not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Response sent to student successfully",
+      data: complaint,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error sending response to student",
+      error: error?.message ?? String(error),
+    });
+  }
+};
+
 /* Public: Track Complaint Status */
 const trackComplaint = async (req, res) => {
   try {
@@ -313,6 +390,8 @@ module.exports = {
   createComplaint,
   getComplaints,
   updateComplaintStatus,
+  updateComplaintResponse,
   trackComplaint,
   getActiveComplaintByEmail,
+  getLatestComplaintByEmail,
 };

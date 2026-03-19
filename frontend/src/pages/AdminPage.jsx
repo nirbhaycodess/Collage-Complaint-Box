@@ -22,6 +22,8 @@ function AdminDashboard() {
   const [locationNames, setLocationNames] = useState({});
   const [studentIdFilter, setStudentIdFilter] = useState("");
   const [studentNameFilter, setStudentNameFilter] = useState("");
+  const [responseDrafts, setResponseDrafts] = useState({});
+  const [responseSavingId, setResponseSavingId] = useState("");
 
   const getAuthHeaders = () => {
     // Pull admin JWT from session storage
@@ -41,7 +43,17 @@ function AdminDashboard() {
       });
 
       const list = Array.isArray(res.data) ? res.data : res.data?.data;
-      setComplaints(Array.isArray(list) ? list : []);
+      const normalizedList = Array.isArray(list) ? list : [];
+      setComplaints(normalizedList);
+      setResponseDrafts((prev) => {
+        const next = { ...prev };
+        normalizedList.forEach((item) => {
+          if (next[item._id] === undefined) {
+            next[item._id] = item.adminResponse || "";
+          }
+        });
+        return next;
+      });
 
     } catch (error) {
       console.log(error);
@@ -75,6 +87,35 @@ function AdminDashboard() {
         return;
       }
       setError("Failed to update complaint status.");
+    }
+  };
+
+  const updateResponse = async (id) => {
+    const draft = String(responseDrafts[id] || "").trim();
+    if (!draft) {
+      setError("Please type a response before sending.");
+      return;
+    }
+
+    try {
+      setResponseSavingId(id);
+      setError("");
+      await axios.patch(
+        `${API_BASE}/api/complaints/${id}/response`,
+        { adminResponse: draft },
+        { headers: getAuthHeaders() }
+      );
+      await fetchComplaints();
+    } catch (error) {
+      console.log(error);
+      if (error?.response?.status === 401) {
+        sessionStorage.removeItem("adminToken");
+        navigate("/");
+        return;
+      }
+      setError("Failed to send response to student.");
+    } finally {
+      setResponseSavingId("");
     }
   };
 
@@ -456,6 +497,46 @@ function AdminDashboard() {
                       />
                     </div>
                   )}
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`response-${complaint._id}`}
+                      className="text-sm text-slate-100"
+                    >
+                      Response to student
+                    </label>
+                    <textarea
+                      id={`response-${complaint._id}`}
+                      rows={3}
+                      value={responseDrafts[complaint._id] ?? ""}
+                      onChange={(event) =>
+                        setResponseDrafts((prev) => ({
+                          ...prev,
+                          [complaint._id]: event.target.value,
+                        }))
+                      }
+                      placeholder="Type response for this complaint..."
+                      className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                    />
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs text-slate-200">
+                        {complaint.adminResponseAt
+                          ? `Last sent: ${new Date(
+                              complaint.adminResponseAt
+                            ).toLocaleString()}`
+                          : "No response sent yet."}
+                      </p>
+                      <button
+                        onClick={() => updateResponse(complaint._id)}
+                        disabled={responseSavingId === complaint._id}
+                        className="bg-sky-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-sky-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {responseSavingId === complaint._id
+                          ? "Sending..."
+                          : "Send Response"}
+                      </button>
+                    </div>
+                  </div>
 
                   {complaint.status !== "resolved" && (
                     <div className="flex items-center justify-end">

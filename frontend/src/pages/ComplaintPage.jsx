@@ -102,6 +102,7 @@ function ComplaintPage() {
   const [submittedStatus, setSubmittedStatus] = useState("");
   const [activeBlock, setActiveBlock] = useState("");
   const [activeComplaint, setActiveComplaint] = useState(null);
+  const [latestComplaint, setLatestComplaint] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -119,22 +120,35 @@ function ComplaintPage() {
   useEffect(() => {
     // Block new submissions if there's an unresolved complaint
     const checkActive = async () => {
-      if (!user?.email) return;
+      if (!user?.email) {
+        setActiveBlock("");
+        setActiveComplaint(null);
+        setLatestComplaint(null);
+        return;
+      }
       try {
-        const res = await axios.get(
-          `${API_BASE}/api/complaints/active/${encodeURIComponent(
-            user.email
-          )}`
-        );
-        if (res.data?.data) {
+        const [activeRes, latestRes] = await Promise.all([
+          axios.get(
+            `${API_BASE}/api/complaints/active/${encodeURIComponent(
+              user.email
+            )}`
+          ),
+          axios.get(
+            `${API_BASE}/api/complaints/latest/${encodeURIComponent(
+              user.email
+            )}`
+          ),
+        ]);
+        if (activeRes.data?.data) {
           setActiveBlock(
             "You already have an active complaint. Please wait until it is resolved."
           );
-          setActiveComplaint(res.data.data);
+          setActiveComplaint(activeRes.data.data);
         } else {
           setActiveBlock("");
           setActiveComplaint(null);
         }
+        setLatestComplaint(latestRes.data?.data || null);
       } catch (e) {
         console.log(e);
       }
@@ -230,6 +244,7 @@ function ComplaintPage() {
       if (newStatus) {
         setSubmittedStatus(newStatus);
       }
+      setLatestComplaint(res.data?.data || null);
       setSuccess(res.data?.message || "Complaint submitted successfully");
       setType("");
       setDescription("");
@@ -247,6 +262,7 @@ function ComplaintPage() {
         );
         if (e?.response?.data?.data) {
           setActiveComplaint(e.response.data.data);
+          setLatestComplaint(e.response.data.data);
         }
         setError(
           message ||
@@ -307,6 +323,18 @@ function ComplaintPage() {
               Share your concern safely. Required fields help us act faster.
             </p>
           </div>
+
+        {latestComplaint?.adminResponse && (
+          <div className="mb-4 rounded-lg border border-sky-300/40 bg-sky-300/10 p-4 text-sky-100">
+            <p className="font-semibold">Admin Response</p>
+            <p className="mt-1 text-sm">{latestComplaint.adminResponse}</p>
+            {latestComplaint.adminResponseAt && (
+              <p className="mt-1 text-xs text-sky-200">
+                {new Date(latestComplaint.adminResponseAt).toLocaleString()}
+              </p>
+            )}
+          </div>
+        )}
 
         {error && <p className="mb-4 text-red-300">{error}</p>}
         {activeBlock && (

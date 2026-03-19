@@ -7,8 +7,10 @@ const {
   createComplaint,
   getComplaints,
   updateComplaintStatus,
+  updateComplaintResponse,
   trackComplaint,
   getActiveComplaintByEmail,
+  getLatestComplaintByEmail,
 } = require("../controllers/complaintcontroller");
 
 const upload = multer({
@@ -48,6 +50,8 @@ router.post("/submit", (req, res, next) => {
 router.get("/track/:id", trackComplaint);
 // public: check active complaint by email
 router.get("/active/:email", getActiveComplaintByEmail);
+// public: get latest complaint by email
+router.get("/latest/:email", getLatestComplaintByEmail);
 
 // fetch all complaints at /api/complaints
 router.get("/", requireAdmin, getComplaints);
@@ -61,6 +65,8 @@ const setDefaultResolved = (req) => {
 // Preferred admin endpoint
 router.patch("/:id/status", requireAdmin, updateComplaintStatus);
 router.put("/:id/status", requireAdmin, updateComplaintStatus);
+router.patch("/:id/response", requireAdmin, updateComplaintResponse);
+router.put("/:id/response", requireAdmin, updateComplaintResponse);
 
 // Backwards compatibility with older frontend calls
 router.patch("/:id", requireAdmin, (req, res) => {
