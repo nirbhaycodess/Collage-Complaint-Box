@@ -549,20 +549,17 @@ function AdminDashboard() {
                             ).toLocaleString()}`
                           : "No response sent yet."}
                       </p>
-                      <button
-                        onClick={() => updateResponse(complaint._id)}
-                        disabled={
-                          responseSavingId === complaint._id ||
-                          String(complaint.adminResponse || "").trim() !== ""
-                        }
-                        className="bg-sky-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-sky-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                      >
-                        {String(complaint.adminResponse || "").trim() !== ""
-                          ? "Response Sent"
-                          : responseSavingId === complaint._id
-                          ? "Sending..."
-                          : "Send Response"}
-                      </button>
+                      {String(complaint.adminResponse || "").trim() === "" && (
+                        <button
+                          onClick={() => updateResponse(complaint._id)}
+                          disabled={responseSavingId === complaint._id}
+                          className="bg-sky-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-sky-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {responseSavingId === complaint._id
+                            ? "Sending..."
+                            : "Send Response"}
+                        </button>
+                      )}
                     </div>
                   </div>
 
