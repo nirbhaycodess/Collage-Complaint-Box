@@ -12,12 +12,46 @@ const normalize = (value) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const extractNameMatches = (fullName, ocrText) => {
-  const tokens = normalize(fullName)
+const normalizeCompact = (value) =>
+  normalize(value).replace(/[^a-z0-9]/g, "");
+
+const hasPartialChunkMatch = (expected, ocrText, minChunkLength) => {
+  const source = normalizeCompact(expected);
+  const target = normalizeCompact(ocrText);
+
+  if (!source || !target) return false;
+
+  // Fallback for very short inputs
+  if (source.length < minChunkLength || target.length < minChunkLength) {
+    return source.includes(target) || target.includes(source);
+  }
+
+  for (let index = 0; index <= source.length - minChunkLength; index += 1) {
+    const chunk = source.slice(index, index + minChunkLength);
+    if (target.includes(chunk)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const getNameTokens = (fullName) =>
+  normalize(fullName)
     .split(" ")
     .filter((token) => token.length >= 3);
-  const haystack = normalize(ocrText);
-  return tokens.some((token) => haystack.includes(token));
+
+const extractNameMatches = (fullName, ocrText) => {
+  const minNameChunkLength = Number(process.env.OCR_MIN_NAME_CHARS) || 3;
+  const tokens = getNameTokens(fullName);
+  const matchedTokens = tokens.filter((token) =>
+    hasPartialChunkMatch(token, ocrText, minNameChunkLength)
+  );
+  return {
+    totalTokens: tokens.length,
+    matchedTokens: matchedTokens.length,
+    tokens,
+  };
 };
 
 const runOcr = async (buffer) => {
@@ -44,11 +78,22 @@ const verifyStudentId = async (req, res) => {
     }
 
     const ocrText = await runOcr(req.file.buffer);
-    const normalizedText = normalize(ocrText);
+    const minUniversityChunkLength =
+      Number(process.env.OCR_MIN_UNIVERSITY_CHARS) || 4;
     const hasUniversity =
-      normalizedText.includes(normalize(UNIVERSITY_NAME)) ||
-      normalizedText.includes(normalize(UNIVERSITY_FALLBACK));
-    const hasName = extractNameMatches(studentName, ocrText);
+      hasPartialChunkMatch(
+        UNIVERSITY_NAME,
+        ocrText,
+        minUniversityChunkLength
+      ) ||
+      hasPartialChunkMatch(
+        UNIVERSITY_FALLBACK,
+        ocrText,
+        minUniversityChunkLength
+      );
+    const nameMatch = extractNameMatches(studentName, ocrText);
+    const requiredNameMatches = 1;
+    const hasName = nameMatch.matchedTokens >= requiredNameMatches;
 
     const verified = Boolean(hasUniversity && hasName);
     let record = null;
@@ -78,6 +123,8 @@ const verifyStudentId = async (req, res) => {
       checks: {
         university: hasUniversity,
         name: hasName,
+        nameMatchedTokens: nameMatch.matchedTokens,
+        nameRequiredTokens: requiredNameMatches,
       },
       data: {
         studentEmail: record?.studentEmail || studentEmail.toLowerCase(),

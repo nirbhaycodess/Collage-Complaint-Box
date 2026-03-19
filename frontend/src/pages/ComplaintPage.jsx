@@ -92,6 +92,8 @@ function ComplaintPage() {
   const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
   const [user, setUser] = useState(null);
+  const [verificationStatus, setVerificationStatus] = useState("unknown");
+  const [verificationLoading, setVerificationLoading] = useState(false);
   const [studentId, setStudentId] = useState("");
   const [location, setLocation] = useState("");
   const [locationStatus, setLocationStatus] = useState("");
@@ -168,6 +170,30 @@ function ComplaintPage() {
     loadComplaintData();
   }, [user]);
 
+  useEffect(() => {
+    const fetchVerificationStatus = async () => {
+      if (!user?.email) {
+        setVerificationStatus("unknown");
+        return;
+      }
+
+      try {
+        setVerificationLoading(true);
+        const res = await axios.get(`${API_BASE}/api/students/verify/status`, {
+          params: { email: user.email },
+        });
+        setVerificationStatus(res.data?.verified ? "verified" : "unverified");
+      } catch (verificationError) {
+        console.log(verificationError);
+        setVerificationStatus("unverified");
+      } finally {
+        setVerificationLoading(false);
+      }
+    };
+
+    fetchVerificationStatus();
+  }, [user?.email]);
+
   const handleGetLocation = () => {
     // Ask browser for current coordinates
     if (!navigator.geolocation) {
@@ -209,6 +235,12 @@ function ComplaintPage() {
       }
       if (activeBlock) {
         setError(activeBlock);
+        return;
+      }
+      if (verificationStatus !== "verified") {
+        setError(
+          "Student verification required. Please upload your ID card and verify from dashboard first."
+        );
         return;
       }
       if (!studentId.trim()) {
@@ -367,6 +399,24 @@ function ComplaintPage() {
             </p>
           </div>
         )}
+        {!verificationLoading &&
+          user &&
+          verificationStatus !== "verified" && (
+            <div className="mb-4 rounded-lg border border-amber-300/40 bg-amber-300/10 p-4 text-amber-100">
+              <p className="font-semibold">Student Verification Required</p>
+              <p className="mt-1 text-sm">
+                Verify your ID card using OCR from dashboard before submitting
+                a complaint.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="mt-3 inline-flex rounded-lg bg-amber-300 px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-amber-100 transition"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          )}
         {success && <p className="mb-4 text-emerald-300">{success}</p>}
         {submittedStatus && (
           <div className="mb-4 rounded-lg border border-emerald-400/40 bg-emerald-400/10 p-4 text-emerald-100">
@@ -398,7 +448,13 @@ function ComplaintPage() {
             onChange={(e) => setStudentId(e.target.value)}
             maxLength={15}
             className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
-            disabled={!user || loading || Boolean(activeBlock)}
+            disabled={
+              !user ||
+              loading ||
+              Boolean(activeBlock) ||
+              verificationLoading ||
+              verificationStatus !== "verified"
+            }
             required
           />
 
@@ -424,7 +480,13 @@ function ComplaintPage() {
             value={type}
             onChange={(e) => setType(e.target.value)}
             className="w-full rounded-lg bg-gradient-to-r from-amber-100 via-white to-amber-50 border border-amber-200 px-4 py-3 text-slate-900 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-300"
-            disabled={!user || loading || Boolean(activeBlock)}
+            disabled={
+              !user ||
+              loading ||
+              Boolean(activeBlock) ||
+              verificationLoading ||
+              verificationStatus !== "verified"
+            }
             required
           >
             <option value="">Select Complaint Type</option>
@@ -442,7 +504,13 @@ function ComplaintPage() {
             onChange={(e) => setDescription(e.target.value)}
             rows="5"
             className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
-            disabled={!user || loading || Boolean(activeBlock)}
+            disabled={
+              !user ||
+              loading ||
+              Boolean(activeBlock) ||
+              verificationLoading ||
+              verificationStatus !== "verified"
+            }
             required
           />
 
@@ -450,7 +518,13 @@ function ComplaintPage() {
             <button
               type="button"
               onClick={handleGetLocation}
-              disabled={!user || loading || Boolean(activeBlock)}
+              disabled={
+                !user ||
+                loading ||
+                Boolean(activeBlock) ||
+                verificationLoading ||
+                verificationStatus !== "verified"
+              }
               className="w-full border border-white/20 rounded-lg px-4 py-3 bg-white/10 hover:bg-white/15 transition"
             >
               {location ? "Location Captured" : "Get Location"}
@@ -474,7 +548,13 @@ function ComplaintPage() {
               accept="image/*"
               onChange={(e) => setFile(e.target.files[0])}
               className="w-full rounded-lg border border-white/20 bg-white/10 text-slate-100 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-900 hover:file:bg-amber-100"
-              disabled={!user || loading || Boolean(activeBlock)}
+              disabled={
+                !user ||
+                loading ||
+                Boolean(activeBlock) ||
+                verificationLoading ||
+                verificationStatus !== "verified"
+              }
               required
             />
             {!file && (
@@ -487,7 +567,13 @@ function ComplaintPage() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!user || loading || Boolean(activeBlock)}
+            disabled={
+              !user ||
+              loading ||
+              Boolean(activeBlock) ||
+              verificationLoading ||
+              verificationStatus !== "verified"
+            }
             className="w-full bg-amber-300 text-slate-900 font-semibold py-3 rounded-lg shadow-lg hover:bg-amber-100 transition"
           >
             {loading ? "Submitting..." : "Submit Complaint"}
