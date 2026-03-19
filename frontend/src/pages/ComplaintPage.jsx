@@ -118,27 +118,19 @@ function ComplaintPage() {
   }, []);
 
   useEffect(() => {
-    // Block new submissions if there's an unresolved complaint
-    const checkActive = async () => {
+    // Load active complaint + response history
+    const loadComplaintData = async () => {
       if (!user?.email) {
         setActiveBlock("");
         setActiveComplaint(null);
         setComplaintHistory([]);
         return;
       }
+
       try {
-        const [activeRes, historyRes] = await Promise.all([
-          axios.get(
-            `${API_BASE}/api/complaints/active/${encodeURIComponent(
-              user.email
-            )}`
-          ),
-          axios.get(
-            `${API_BASE}/api/complaints/history/${encodeURIComponent(
-              user.email
-            )}`
-          ),
-        ]);
+        const activeRes = await axios.get(
+          `${API_BASE}/api/complaints/active/${encodeURIComponent(user.email)}`
+        );
         if (activeRes.data?.data) {
           setActiveBlock(
             "You already have an active complaint. Please wait until it is resolved."
@@ -148,15 +140,32 @@ function ComplaintPage() {
           setActiveBlock("");
           setActiveComplaint(null);
         }
-        setComplaintHistory(
-          Array.isArray(historyRes.data?.data) ? historyRes.data.data : []
+      } catch (activeError) {
+        console.log(activeError);
+      }
+
+      try {
+        const historyRes = await axios.get(
+          `${API_BASE}/api/complaints/history/${encodeURIComponent(user.email)}`
         );
-      } catch (e) {
-        console.log(e);
+        setComplaintHistory(Array.isArray(historyRes.data?.data) ? historyRes.data.data : []);
+      } catch (historyError) {
+        console.log(historyError);
+        // Backward-compatible fallback if history endpoint is unavailable
+        try {
+          const latestRes = await axios.get(
+            `${API_BASE}/api/complaints/latest/${encodeURIComponent(user.email)}`
+          );
+          const latest = latestRes.data?.data;
+          setComplaintHistory(latest ? [latest] : []);
+        } catch (latestError) {
+          console.log(latestError);
+          setComplaintHistory([]);
+        }
       }
     };
 
-    checkActive();
+    loadComplaintData();
   }, [user]);
 
   const handleGetLocation = () => {
