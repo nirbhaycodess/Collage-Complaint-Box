@@ -35,13 +35,9 @@ function AdminDashboard() {
 
       setLoading(true);
       setError("");
-      const params = {};
-      if (studentIdFilter.trim()) params.studentId = studentIdFilter.trim();
-      if (studentNameFilter.trim()) params.studentName = studentNameFilter.trim();
 
       const res = await axios.get(`${API_BASE}/api/complaints`, {
         headers: getAuthHeaders(),
-        params,
       });
 
       const list = Array.isArray(res.data) ? res.data : res.data?.data;
@@ -99,10 +95,6 @@ function AdminDashboard() {
   useEffect(() => {
     fetchComplaints();
   }, []);
-
-  useEffect(() => {
-    fetchComplaints();
-  }, [studentIdFilter, studentNameFilter]);
 
   useEffect(() => {
     // Reverse geocode coordinates for friendlier admin display
@@ -174,15 +166,34 @@ function AdminDashboard() {
 
   const normalizedSearch = search.trim().toLowerCase();
   const filteredComplaints = complaints.filter((item) => {
+    const normalizedStudentIdFilter = studentIdFilter.trim().toLowerCase();
+    const normalizedStudentNameFilter = studentNameFilter.trim().toLowerCase();
+
     const matchesStatus =
       statusFilter === "all" ||
       String(item.status).toLowerCase() === statusFilter;
     const matchesType = typeFilter === "all" || item.type === typeFilter;
+    const matchesStudentId =
+      normalizedStudentIdFilter.length === 0 ||
+      String(item.studentId || "")
+        .toLowerCase()
+        .includes(normalizedStudentIdFilter);
+    const matchesStudentName =
+      normalizedStudentNameFilter.length === 0 ||
+      String(item.studentName || "")
+        .toLowerCase()
+        .includes(normalizedStudentNameFilter);
     const matchesSearch =
       normalizedSearch.length === 0 ||
       String(item.type).toLowerCase().includes(normalizedSearch) ||
       String(item.description).toLowerCase().includes(normalizedSearch);
-    return matchesStatus && matchesType && matchesSearch;
+    return (
+      matchesStatus &&
+      matchesType &&
+      matchesStudentId &&
+      matchesStudentName &&
+      matchesSearch
+    );
   });
 
   const sortedComplaints = [...filteredComplaints].sort((a, b) => {
@@ -462,5 +473,4 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
-
 
