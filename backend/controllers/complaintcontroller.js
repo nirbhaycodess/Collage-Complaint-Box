@@ -4,6 +4,46 @@ const StudentVerification = require("../models/studentVerification");
 const { uploadComplaintImage } = require("../config/cloudinary");
 
 const ALLOWED_STATUSES = new Set(["pending", "resolved", "done"]);
+const ALLOWED_COMPLAINT_LAT = Number(process.env.ALLOWED_COMPLAINT_LAT);
+const ALLOWED_COMPLAINT_LNG = Number(process.env.ALLOWED_COMPLAINT_LNG);
+const ALLOWED_COMPLAINT_RADIUS_METERS = Number(
+  process.env.ALLOWED_COMPLAINT_RADIUS_METERS
+);
+
+const LOCATION_CHECK_CONFIGURED =
+  Number.isFinite(ALLOWED_COMPLAINT_LAT) &&
+  Number.isFinite(ALLOWED_COMPLAINT_LNG) &&
+  Number.isFinite(ALLOWED_COMPLAINT_RADIUS_METERS) &&
+  ALLOWED_COMPLAINT_RADIUS_METERS > 0;
+
+const toRad = (value) => (value * Math.PI) / 180;
+
+const getDistanceMeters = (lat1, lng1, lat2, lng2) => {
+  const earthRadius = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadius * c;
+};
+
+const parseCoordinates = (value) => {
+  if (!value || typeof value !== "string") return null;
+  const parts = value.split(",").map((part) => part.trim());
+  if (parts.length !== 2) return null;
+
+  const lat = Number(parts[0]);
+  const lng = Number(parts[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+  return { lat, lng };
+};
 
 /* Create Complaint */
 const createComplaint = async (req, res) => {
@@ -32,6 +72,38 @@ const createComplaint = async (req, res) => {
         message: "Missing required fields",
         error:
           "studentId, studentName, studentEmail, type, description, and location are required",
+      });
+    }
+
+    if (!LOCATION_CHECK_CONFIGURED) {
+      return res.status(500).json({
+        message: "Complaint location validation is not configured",
+        error:
+          "Set ALLOWED_COMPLAINT_LAT, ALLOWED_COMPLAINT_LNG and ALLOWED_COMPLAINT_RADIUS_METERS in backend .env",
+      });
+    }
+
+    const coords = parseCoordinates(location);
+    if (!coords) {
+      return res.status(400).json({
+        message: "Invalid location value",
+        error: "Location must be in 'latitude, longitude' format",
+      });
+    }
+
+    const distanceMeters = getDistanceMeters(
+      coords.lat,
+      coords.lng,
+      ALLOWED_COMPLAINT_LAT,
+      ALLOWED_COMPLAINT_LNG
+    );
+
+    if (distanceMeters > ALLOWED_COMPLAINT_RADIUS_METERS) {
+      return res.status(403).json({
+        message: "Complaint can be submitted only from the allowed location area",
+        error: `Outside allowed area by ${Math.round(
+          distanceMeters - ALLOWED_COMPLAINT_RADIUS_METERS
+        )} meters`,
       });
     }
 

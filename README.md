@@ -122,10 +122,16 @@ Backend:
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET`
 - `CLOUDINARY_FOLDER` (optional, default: `college-complaints`)
+- `ALLOWED_COMPLAINT_LAT` (required for geofence validation)
+- `ALLOWED_COMPLAINT_LNG` (required for geofence validation)
+- `ALLOWED_COMPLAINT_RADIUS_METERS` (required for geofence validation)
 
 Frontend:
 - `VITE_API_BASE_URL`
 - `VITE_GOOGLE_CLIENT_ID`
+- `VITE_ALLOWED_COMPLAINT_LAT` (same value as backend)
+- `VITE_ALLOWED_COMPLAINT_LNG` (same value as backend)
+- `VITE_ALLOWED_COMPLAINT_RADIUS_METERS` (same value as backend)
 
 ---
 

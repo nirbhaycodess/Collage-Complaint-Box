@@ -9,6 +9,83 @@ import logo from "../assets/logo.png";
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL || "https://speakup-invertians.onrender.com";
 
+const ALLOWED_COMPLAINT_LAT = Number(import.meta.env.VITE_ALLOWED_COMPLAINT_LAT);
+const ALLOWED_COMPLAINT_LNG = Number(import.meta.env.VITE_ALLOWED_COMPLAINT_LNG);
+const ALLOWED_COMPLAINT_RADIUS_METERS = Number(
+  import.meta.env.VITE_ALLOWED_COMPLAINT_RADIUS_METERS
+);
+
+const LOCATION_CHECK_CONFIGURED =
+  Number.isFinite(ALLOWED_COMPLAINT_LAT) &&
+  Number.isFinite(ALLOWED_COMPLAINT_LNG) &&
+  Number.isFinite(ALLOWED_COMPLAINT_RADIUS_METERS) &&
+  ALLOWED_COMPLAINT_RADIUS_METERS > 0;
+
+const toRad = (value) => (value * Math.PI) / 180;
+
+const getDistanceMeters = (lat1, lng1, lat2, lng2) => {
+  const earthRadius = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadius * c;
+};
+
+const parseCoordinates = (value) => {
+  if (!value || typeof value !== "string") return null;
+  const parts = value.split(",").map((part) => part.trim());
+  if (parts.length !== 2) return null;
+
+  const lat = Number(parts[0]);
+  const lng = Number(parts[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+  return { lat, lng };
+};
+
+const getLocationEligibility = (value) => {
+  if (!LOCATION_CHECK_CONFIGURED) {
+    return {
+      ok: false,
+      reason:
+        "Location validation is not configured. Contact admin to set campus location.",
+    };
+  }
+
+  const coords = parseCoordinates(value);
+  if (!coords) {
+    return {
+      ok: false,
+      reason: "Invalid location format. Please capture location again.",
+    };
+  }
+
+  const distanceMeters = getDistanceMeters(
+    coords.lat,
+    coords.lng,
+    ALLOWED_COMPLAINT_LAT,
+    ALLOWED_COMPLAINT_LNG
+  );
+
+  if (distanceMeters > ALLOWED_COMPLAINT_RADIUS_METERS) {
+    return {
+      ok: false,
+      reason: `You are outside the allowed complaint area. Move within ${Math.round(
+        ALLOWED_COMPLAINT_RADIUS_METERS
+      )} meters and try again.`,
+    };
+  }
+
+  return { ok: true, reason: "" };
+};
+
 function ComplaintPage() {
 
   const navigate = useNavigate();
@@ -77,7 +154,12 @@ function ComplaintPage() {
       (pos) => {
         const coords = `${pos.coords.latitude}, ${pos.coords.longitude}`;
         setLocation(coords);
-        setLocationStatus("Location captured");
+        const eligibility = getLocationEligibility(coords);
+        setLocationStatus(
+          eligibility.ok
+            ? "Location captured. You are inside the allowed area."
+            : eligibility.reason
+        );
       },
       () => {
         setLocationStatus("Location access denied. Please allow location.");
@@ -108,6 +190,11 @@ function ComplaintPage() {
       }
       if (!location) {
         setError("Location is required. Please allow location access.");
+        return;
+      }
+      const eligibility = getLocationEligibility(location);
+      if (!eligibility.ok) {
+        setError(eligibility.reason);
         return;
       }
       if (!file) {
