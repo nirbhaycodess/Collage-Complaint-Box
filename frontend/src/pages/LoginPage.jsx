@@ -266,8 +266,8 @@ function Dashboard() {
                       <p className="text-sm font-semibold text-slate-200">
                         Student Verification
                       </p>
-                      <p className="text-sm text-slate-200">
-                        Upload your college ID card to verify your account.
+                      <p className="rounded-lg border border-amber-300/40 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
+                        Upload your college ID card to verify your account. Important: Your Google account name should match the name printed on your college ID card.
                       </p>
                       <input
                         type="file"
