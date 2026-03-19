@@ -113,6 +113,14 @@ function AdminDashboard() {
         navigate("/");
         return;
       }
+      if (error?.response?.status === 409) {
+        setError(
+          error?.response?.data?.message ||
+            "Response already sent for this complaint."
+        );
+        await fetchComplaints();
+        return;
+      }
       setError("Failed to send response to student.");
     } finally {
       setResponseSavingId("");
@@ -438,6 +446,14 @@ function AdminDashboard() {
                   key={complaint._id}
                   className="rounded-xl border border-white/20 bg-white/15 p-5 space-y-4"
                 >
+                  {String(complaint.adminResponse || "").trim() !== "" && (
+                    <div className="rounded-lg border border-emerald-300/40 bg-emerald-300/10 p-3 text-emerald-100 text-sm">
+                      Response sent at{" "}
+                      {complaint.adminResponseAt
+                        ? new Date(complaint.adminResponseAt).toLocaleString()
+                        : "recorded time"}.
+                    </div>
+                  )}
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-slate-100">
@@ -515,8 +531,15 @@ function AdminDashboard() {
                           [complaint._id]: event.target.value,
                         }))
                       }
-                      placeholder="Type response for this complaint..."
+                      placeholder={
+                        String(complaint.adminResponse || "").trim() !== ""
+                          ? "Response already sent for this complaint."
+                          : "Type response for this complaint..."
+                      }
                       className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                      disabled={
+                        String(complaint.adminResponse || "").trim() !== ""
+                      }
                     />
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-xs text-slate-200">
@@ -528,10 +551,15 @@ function AdminDashboard() {
                       </p>
                       <button
                         onClick={() => updateResponse(complaint._id)}
-                        disabled={responseSavingId === complaint._id}
+                        disabled={
+                          responseSavingId === complaint._id ||
+                          String(complaint.adminResponse || "").trim() !== ""
+                        }
                         className="bg-sky-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-sky-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
                       >
-                        {responseSavingId === complaint._id
+                        {String(complaint.adminResponse || "").trim() !== ""
+                          ? "Response Sent"
+                          : responseSavingId === complaint._id
                           ? "Sending..."
                           : "Send Response"}
                       </button>

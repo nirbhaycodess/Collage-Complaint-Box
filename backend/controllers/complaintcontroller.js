@@ -328,8 +328,15 @@ const updateComplaintResponse = async (req, res) => {
       });
     }
 
-    const complaint = await Complaint.findByIdAndUpdate(
-      id,
+    const complaint = await Complaint.findOneAndUpdate(
+      {
+        _id: id,
+        $or: [
+          { adminResponse: { $exists: false } },
+          { adminResponse: null },
+          { adminResponse: "" },
+        ],
+      },
       {
         $set: {
           adminResponse: responseRaw.trim(),
@@ -340,6 +347,12 @@ const updateComplaintResponse = async (req, res) => {
     );
 
     if (!complaint) {
+      const existing = await Complaint.findById(id).select("_id adminResponse");
+      if (existing && String(existing.adminResponse || "").trim() !== "") {
+        return res.status(409).json({
+          message: "Response already sent for this complaint",
+        });
+      }
       return res.status(404).json({
         message: "Complaint not found",
       });
