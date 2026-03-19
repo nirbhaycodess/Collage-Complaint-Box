@@ -99,6 +99,7 @@ const verifyStudentId = async (req, res) => {
     const hasName = nameMatch.matchedTokens >= requiredNameMatches;
 
     const verified = Boolean(hasUniversity && hasName);
+    const attemptTime = new Date();
     const record = await StudentVerification.findOneAndUpdate(
       { studentEmail: studentEmail.toLowerCase() },
       {
@@ -108,8 +109,11 @@ const verifyStudentId = async (req, res) => {
           verified,
           verificationStatus: verified ? "yes" : "no",
           ocrText,
-          verifiedAt: verified ? new Date() : null,
+          verifiedAt: verified ? attemptTime : null,
+          lastAttemptAt: attemptTime,
+          lastAttemptVerified: verified,
         },
+        $inc: { attemptCount: 1 },
       },
       { upsert: true, new: true }
     );
@@ -131,6 +135,9 @@ const verifyStudentId = async (req, res) => {
         verified: record?.verified || false,
         verificationStatus: record?.verificationStatus || "no",
         verifiedAt: record?.verifiedAt || null,
+        lastAttemptAt: record?.lastAttemptAt || null,
+        lastAttemptVerified: Boolean(record?.lastAttemptVerified),
+        attemptCount: Number(record?.attemptCount || 0),
       },
     });
   } catch (error) {
@@ -150,7 +157,9 @@ const getVerificationStatus = async (req, res) => {
 
     const record = await StudentVerification.findOne({
       studentEmail: email.toLowerCase(),
-    }).select("studentEmail studentName verified verificationStatus verifiedAt");
+    }).select(
+      "studentEmail studentName verified verificationStatus verifiedAt lastAttemptAt lastAttemptVerified attemptCount"
+    );
 
     return res.status(200).json({
       verified: Boolean(record?.verified),

@@ -30,6 +30,19 @@ const studentVerificationSchema = new mongoose.Schema(
     verifiedAt: {
       type: Date,
     },
+    lastAttemptAt: {
+      type: Date,
+      default: Date.now,
+    },
+    lastAttemptVerified: {
+      type: Boolean,
+      default: false,
+    },
+    attemptCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   { timestamps: true }
 );
