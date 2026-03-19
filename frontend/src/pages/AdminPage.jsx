@@ -538,21 +538,16 @@ function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-start">
-                    <button
-                      onClick={() => updateStatus(complaint._id, "resolved")}
-                      disabled={
-                        String(complaint.status || "").toLowerCase() ===
-                        "resolved"
-                      }
-                      className="bg-emerald-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-emerald-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {String(complaint.status || "").toLowerCase() ===
-                      "resolved"
-                        ? "Resolved"
-                        : "Mark Resolved"}
-                    </button>
-                  </div>
+                  {complaint.status !== "resolved" && (
+                    <div className="flex items-center justify-end">
+                      <button
+                        onClick={() => updateStatus(complaint._id, "resolved")}
+                        className="bg-emerald-300 text-slate-900 font-semibold px-4 py-2 rounded-lg hover:bg-emerald-200 transition"
+                      >
+                        Mark Resolved
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
