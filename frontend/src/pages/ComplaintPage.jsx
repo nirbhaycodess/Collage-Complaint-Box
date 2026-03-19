@@ -340,40 +340,6 @@ function ComplaintPage() {
             </p>
           </div>
 
-        {complaintHistory.filter(
-          (item) => String(item.adminResponse || "").trim() !== ""
-        ).length > 0 && (
-          <div className="mb-4 rounded-lg border border-sky-300/40 bg-sky-300/10 p-4 text-sky-100">
-            <p className="font-semibold">Your Complaint Response History</p>
-            <div className="mt-3 space-y-3">
-              {complaintHistory
-                .filter((item) => String(item.adminResponse || "").trim() !== "")
-                .map((item, index) => (
-                  <div
-                    key={item._id || `${item.submittedAt || ""}-${index}`}
-                    className="rounded-lg border border-sky-200/30 bg-slate-900/30 p-3"
-                  >
-                    <p className="text-sm font-semibold">
-                      Response for Complaint #{index + 1}
-                    </p>
-                    <p className="mt-1 text-xs text-sky-200">
-                      {item.type || "Complaint"}{" "}
-                      {item.submittedAt
-                        ? `- Submitted ${new Date(item.submittedAt).toLocaleString()}`
-                        : ""}
-                    </p>
-                    <p className="mt-2 text-sm">{item.adminResponse}</p>
-                    {item.adminResponseAt && (
-                      <p className="mt-2 text-xs text-sky-200">
-                        Responded at {new Date(item.adminResponseAt).toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                ))}
-            </div>
-          </div>
-        )}
-
         {error && <p className="mb-4 text-red-300">{error}</p>}
         {activeBlock && (
           <div className="mb-4 rounded-lg border border-amber-300/40 bg-amber-300/10 p-4 text-amber-100">
@@ -528,6 +494,40 @@ function ComplaintPage() {
           </button>
 
         </form>
+
+        {complaintHistory.filter(
+          (item) => String(item.adminResponse || "").trim() !== ""
+        ).length > 0 && (
+          <div className="mt-6 rounded-lg border border-sky-300/40 bg-sky-300/10 p-4 text-sky-100">
+            <p className="font-semibold">Your Complaint Response History</p>
+            <div className="mt-3 space-y-3">
+              {complaintHistory
+                .filter((item) => String(item.adminResponse || "").trim() !== "")
+                .map((item, index) => (
+                  <div
+                    key={item._id || `${item.submittedAt || ""}-${index}`}
+                    className="rounded-lg border border-sky-200/30 bg-slate-900/30 p-3"
+                  >
+                    <p className="text-sm font-semibold">
+                      Response for Complaint #{index + 1}
+                    </p>
+                    <p className="mt-1 text-xs text-sky-200">
+                      {item.type || "Complaint"}{" "}
+                      {item.submittedAt
+                        ? `- Submitted ${new Date(item.submittedAt).toLocaleString()}`
+                        : ""}
+                    </p>
+                    <p className="mt-2 text-sm">{item.adminResponse}</p>
+                    {item.adminResponseAt && (
+                      <p className="mt-2 text-xs text-sky-200">
+                        Responded at {new Date(item.adminResponseAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
 
       </div>
 
