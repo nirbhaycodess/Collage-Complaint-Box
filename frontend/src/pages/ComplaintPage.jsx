@@ -288,11 +288,18 @@ function ComplaintPage() {
       <div className="relative min-h-screen flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-2xl bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl">
           <div className="mb-6 space-y-4">
-            <img
-              src={logo}
-              alt="University Logo"
-              className="w-28 md:w-36 bg-transparent brightness-125 contrast-125 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
-            />
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="inline-flex rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-slate-900"
+              aria-label="Go to login page"
+            >
+              <img
+                src={logo}
+                alt="University Logo"
+                className="w-28 md:w-36 bg-transparent brightness-125 contrast-125 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
+              />
+            </button>
             <h2 className="text-2xl md:text-3xl font-semibold text-white">
               Submit Complaint To The College Authorities
             </h2>

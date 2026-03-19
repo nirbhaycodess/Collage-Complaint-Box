@@ -232,11 +232,18 @@ function AdminDashboard() {
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-3">
-              <img
-                src={logo}
-                alt="University Logo"
-                className="w-24 md:w-32 bg-transparent brightness-125 contrast-125 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
-              />
+              <button
+                type="button"
+                onClick={() => navigate("/admin")}
+                className="inline-flex rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-slate-900"
+                aria-label="Go to admin login page"
+              >
+                <img
+                  src={logo}
+                  alt="University Logo"
+                  className="w-24 md:w-32 bg-transparent brightness-125 contrast-125 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
+                />
+              </button>
               <p className="text-sm text-slate-100 tracking-wide uppercase">
                 Admin Workspace
               </p>
