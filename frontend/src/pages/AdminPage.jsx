@@ -431,9 +431,6 @@ function AdminDashboard() {
                           complaint.location
                         : "â€”"}
                     </p>
-                    <p className="md:col-span-2 text-amber-200">
-                      Notice: Students must be on campus to submit a complaint.
-                    </p>
                     <p>
                       <span className="text-slate-200">Submitted At:</span>{" "}
                       {complaint.submittedAt

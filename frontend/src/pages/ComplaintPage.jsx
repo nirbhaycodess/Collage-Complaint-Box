@@ -416,6 +416,9 @@ function ComplaintPage() {
             >
               {location ? "Location Captured" : "Get Location"}
             </button>
+            <p className="text-sm text-amber-200">
+              Notice: Students must be on campus to submit a complaint.
+            </p>
             {locationStatus && (
               <p className="text-sm text-slate-200">{locationStatus}</p>
             )}
