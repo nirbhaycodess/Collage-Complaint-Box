@@ -102,7 +102,7 @@ function ComplaintPage() {
   const [submittedStatus, setSubmittedStatus] = useState("");
   const [activeBlock, setActiveBlock] = useState("");
   const [activeComplaint, setActiveComplaint] = useState(null);
-  const [latestComplaint, setLatestComplaint] = useState(null);
+  const [complaintHistory, setComplaintHistory] = useState([]);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -123,18 +123,18 @@ function ComplaintPage() {
       if (!user?.email) {
         setActiveBlock("");
         setActiveComplaint(null);
-        setLatestComplaint(null);
+        setComplaintHistory([]);
         return;
       }
       try {
-        const [activeRes, latestRes] = await Promise.all([
+        const [activeRes, historyRes] = await Promise.all([
           axios.get(
             `${API_BASE}/api/complaints/active/${encodeURIComponent(
               user.email
             )}`
           ),
           axios.get(
-            `${API_BASE}/api/complaints/latest/${encodeURIComponent(
+            `${API_BASE}/api/complaints/history/${encodeURIComponent(
               user.email
             )}`
           ),
@@ -148,7 +148,9 @@ function ComplaintPage() {
           setActiveBlock("");
           setActiveComplaint(null);
         }
-        setLatestComplaint(latestRes.data?.data || null);
+        setComplaintHistory(
+          Array.isArray(historyRes.data?.data) ? historyRes.data.data : []
+        );
       } catch (e) {
         console.log(e);
       }
@@ -244,7 +246,13 @@ function ComplaintPage() {
       if (newStatus) {
         setSubmittedStatus(newStatus);
       }
-      setLatestComplaint(res.data?.data || null);
+      setComplaintHistory((prev) => {
+        const next = Array.isArray(prev) ? [...prev] : [];
+        if (res.data?.data?._id) {
+          next.push(res.data.data);
+        }
+        return next;
+      });
       setSuccess(res.data?.message || "Complaint submitted successfully");
       setType("");
       setDescription("");
@@ -262,7 +270,6 @@ function ComplaintPage() {
         );
         if (e?.response?.data?.data) {
           setActiveComplaint(e.response.data.data);
-          setLatestComplaint(e.response.data.data);
         }
         setError(
           message ||
@@ -324,15 +331,37 @@ function ComplaintPage() {
             </p>
           </div>
 
-        {latestComplaint?.adminResponse && (
+        {complaintHistory.filter(
+          (item) => String(item.adminResponse || "").trim() !== ""
+        ).length > 0 && (
           <div className="mb-4 rounded-lg border border-sky-300/40 bg-sky-300/10 p-4 text-sky-100">
-            <p className="font-semibold">Admin Response</p>
-            <p className="mt-1 text-sm">{latestComplaint.adminResponse}</p>
-            {latestComplaint.adminResponseAt && (
-              <p className="mt-1 text-xs text-sky-200">
-                {new Date(latestComplaint.adminResponseAt).toLocaleString()}
-              </p>
-            )}
+            <p className="font-semibold">Your Complaint Response History</p>
+            <div className="mt-3 space-y-3">
+              {complaintHistory
+                .filter((item) => String(item.adminResponse || "").trim() !== "")
+                .map((item, index) => (
+                  <div
+                    key={item._id || `${item.submittedAt || ""}-${index}`}
+                    className="rounded-lg border border-sky-200/30 bg-slate-900/30 p-3"
+                  >
+                    <p className="text-sm font-semibold">
+                      Response for Complaint #{index + 1}
+                    </p>
+                    <p className="mt-1 text-xs text-sky-200">
+                      {item.type || "Complaint"}{" "}
+                      {item.submittedAt
+                        ? `- Submitted ${new Date(item.submittedAt).toLocaleString()}`
+                        : ""}
+                    </p>
+                    <p className="mt-2 text-sm">{item.adminResponse}</p>
+                    {item.adminResponseAt && (
+                      <p className="mt-2 text-xs text-sky-200">
+                        Responded at {new Date(item.adminResponseAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                ))}
+            </div>
           </div>
         )}
 

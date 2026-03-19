@@ -236,6 +236,38 @@ const getLatestComplaintByEmail = async (req, res) => {
   }
 };
 
+/* Public: Get Complaint History By Email */
+const getComplaintHistoryByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const complaints = await Complaint.find({
+      studentEmail: email.toLowerCase(),
+    })
+      .sort({ submittedAt: 1, complaintTime: 1 })
+      .select(
+        "_id type description status submittedAt complaintTime adminResponse adminResponseAt"
+      );
+
+    return res.status(200).json({
+      message:
+        complaints.length > 0
+          ? "Complaint history fetched successfully"
+          : "No complaint history found",
+      data: complaints,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error fetching complaint history",
+      error: error?.message ?? String(error),
+    });
+  }
+};
+
 /* Get Complaints */
 const getComplaints = async (req, res) => {
   try {
@@ -407,4 +439,5 @@ module.exports = {
   trackComplaint,
   getActiveComplaintByEmail,
   getLatestComplaintByEmail,
+  getComplaintHistoryByEmail,
 };

@@ -11,6 +11,7 @@ const {
   trackComplaint,
   getActiveComplaintByEmail,
   getLatestComplaintByEmail,
+  getComplaintHistoryByEmail,
 } = require("../controllers/complaintcontroller");
 
 const upload = multer({
@@ -52,6 +53,8 @@ router.get("/track/:id", trackComplaint);
 router.get("/active/:email", getActiveComplaintByEmail);
 // public: get latest complaint by email
 router.get("/latest/:email", getLatestComplaintByEmail);
+// public: get complaint history by email
+router.get("/history/:email", getComplaintHistoryByEmail);
 
 // fetch all complaints at /api/complaints
 router.get("/", requireAdmin, getComplaints);
