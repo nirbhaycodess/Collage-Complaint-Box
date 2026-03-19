@@ -287,8 +287,8 @@ function Dashboard() {
                         {verifyLoading ? "Verifying..." : "Verify Student"}
                       </button>
                       {verificationStatus === "verified" && (
-                        <p className="text-xs text-emerald-200">
-                          Verified. You can continue now.
+                        <p className="text-base md:text-lg font-semibold text-emerald-200">
+                          Student status verified. You may now proceed to the complaint form.
                         </p>
                       )}
                     </div>

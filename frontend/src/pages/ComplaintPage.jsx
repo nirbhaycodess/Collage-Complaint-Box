@@ -77,7 +77,8 @@ const getLocationEligibility = (value) => {
   if (distanceMeters > ALLOWED_COMPLAINT_RADIUS_METERS) {
     return {
       ok: false,
-      reason: "You are outside campus. Please try when you are on campus.",
+      reason:
+        '"Access restricted. You must be at a campus location to continue."',
     };
   }
 
@@ -157,7 +158,7 @@ function ComplaintPage() {
         setLocationEligible(eligibility.ok);
         setLocationStatus(
           eligibility.ok
-            ? "You are on campus. You can continue."
+            ? 'Success: "Campus location verified. You may proceed."'
             : eligibility.reason
         );
       },
@@ -194,7 +195,9 @@ function ComplaintPage() {
         return;
       }
       if (locationEligible === false) {
-        setError("You are outside campus. Please try when you are on campus.");
+        setError(
+          '"Access restricted. You must be at a campus location to continue."'
+        );
         return;
       }
       const eligibility = getLocationEligibility(location);
@@ -415,9 +418,6 @@ function ComplaintPage() {
             </button>
             {locationStatus && (
               <p className="text-sm text-slate-200">{locationStatus}</p>
-            )}
-            {location && (
-              <p className="text-sm text-slate-200">Location: {location}</p>
             )}
           </div>
 
