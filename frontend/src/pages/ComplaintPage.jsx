@@ -77,9 +77,7 @@ const getLocationEligibility = (value) => {
   if (distanceMeters > ALLOWED_COMPLAINT_RADIUS_METERS) {
     return {
       ok: false,
-      reason: `You are outside the allowed complaint area. Move within ${Math.round(
-        ALLOWED_COMPLAINT_RADIUS_METERS
-      )} meters and try again.`,
+      reason: "You are outside campus. Please try when you are on campus.",
     };
   }
 
@@ -96,6 +94,7 @@ function ComplaintPage() {
   const [studentId, setStudentId] = useState("");
   const [location, setLocation] = useState("");
   const [locationStatus, setLocationStatus] = useState("");
+  const [locationEligible, setLocationEligible] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -155,13 +154,15 @@ function ComplaintPage() {
         const coords = `${pos.coords.latitude}, ${pos.coords.longitude}`;
         setLocation(coords);
         const eligibility = getLocationEligibility(coords);
+        setLocationEligible(eligibility.ok);
         setLocationStatus(
           eligibility.ok
-            ? "Location captured. You are inside the allowed area."
+            ? "You are on campus. You can continue."
             : eligibility.reason
         );
       },
       () => {
+        setLocationEligible(null);
         setLocationStatus("Location access denied. Please allow location.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -190,6 +191,10 @@ function ComplaintPage() {
       }
       if (!location) {
         setError("Location is required. Please allow location access.");
+        return;
+      }
+      if (locationEligible === false) {
+        setError("You are outside campus. Please try when you are on campus.");
         return;
       }
       const eligibility = getLocationEligibility(location);
