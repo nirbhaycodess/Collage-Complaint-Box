@@ -99,24 +99,20 @@ const verifyStudentId = async (req, res) => {
     const hasName = nameMatch.matchedTokens >= requiredNameMatches;
 
     const verified = Boolean(hasUniversity && hasName);
-    let record = null;
-
-    if (verified) {
-      record = await StudentVerification.findOneAndUpdate(
-        { studentEmail: studentEmail.toLowerCase() },
-        {
-          $set: {
-            studentEmail: studentEmail.toLowerCase(),
-            studentName: studentNameInput,
-            verified: true,
-            verificationStatus: "yes",
-            ocrText,
-            verifiedAt: new Date(),
-          },
+    const record = await StudentVerification.findOneAndUpdate(
+      { studentEmail: studentEmail.toLowerCase() },
+      {
+        $set: {
+          studentEmail: studentEmail.toLowerCase(),
+          studentName: studentNameInput,
+          verified,
+          verificationStatus: verified ? "yes" : "no",
+          ocrText,
+          verifiedAt: verified ? new Date() : null,
         },
-        { upsert: true, new: true }
-      );
-    }
+      },
+      { upsert: true, new: true }
+    );
 
     return res.status(200).json({
       message: verified

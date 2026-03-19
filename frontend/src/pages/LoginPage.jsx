@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { GoogleLogin } from "@react-oauth/google";
@@ -50,6 +50,16 @@ function Dashboard() {
     localStorage.removeItem("ccb_student_user");
     setVerificationStatus("unknown");
     setIdCardFile(null);
+  };
+
+  const handleIdCardChange = (event) => {
+    const nextFile = event.target.files?.[0] || null;
+    setIdCardFile(nextFile);
+    setVerifyError("");
+    if (nextFile) {
+      // Force fresh verification for every new upload attempt.
+      setVerificationStatus("unverified");
+    }
   };
 
   const fetchVerificationStatus = async (email) => {
@@ -274,7 +284,7 @@ function Dashboard() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(event) => setIdCardFile(event.target.files[0])}
+                        onChange={handleIdCardChange}
                         className="w-full rounded-lg border border-white/20 bg-white/10 text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-900 hover:file:bg-amber-100"
                       />
                       {verifyError && (
