@@ -216,25 +216,15 @@ function Dashboard() {
       <div className="absolute bottom-[-140px] left-1/4 h-80 w-80 rounded-full bg-emerald-400/20 blur-3xl" />
 
       <div className="relative min-h-screen flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-5xl grid md:grid-cols-2 gap-10 items-center">
-          <div className="space-y-6">
-            <img
-              src={logo}
-              alt="University Logo"
-              className="w-32 md:w-40 bg-transparent brightness-125 contrast-125 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
-            />
-            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white">
-                Complaint Portal for Invertains 
-            </h1>
-            <p className="text-slate-100 text-lg leading-relaxed">
-              A safe space for students to raise concerns and for admins to act
-              quickly. Your voice matters - let's make our campus better together.
-            </p>
-          </div>
-
+        <div className="w-full max-w-3xl">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-start justify-between mb-6 gap-4">
               <div>
+                <img
+                  src={logo}
+                  alt="University Logo"
+                  className="w-20 md:w-24 mb-3 bg-transparent brightness-125 contrast-125 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)]"
+                />
                 <h2 className="text-2xl font-semibold">Login</h2>
                 <p className="text-slate-200 text-sm">
                   Choose a role and continue
@@ -287,6 +277,15 @@ function Dashboard() {
 
                 {studentUser && (
                   <div className="space-y-4">
+                    <div className="rounded-xl border border-white/20 bg-white/10 p-4">
+                      <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
+                        Complaint Portal for Invertains
+                      </h1>
+                      <p className="mt-2 text-slate-100 text-sm md:text-base leading-relaxed">
+                        A safe space for students to raise concerns and for admins to act
+                        quickly. Your voice matters - let's make our campus better together.
+                      </p>
+                    </div>
                     <div className="rounded-xl border border-white/20 bg-white/10 p-4">
                       <p className="text-sm text-slate-200">Signed in as</p>
                       <p className="text-lg font-semibold">
