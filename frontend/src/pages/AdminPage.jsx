@@ -519,7 +519,9 @@ function AdminDashboard() {
                       htmlFor={`response-${complaint._id}`}
                       className="text-sm text-slate-100"
                     >
-                      Response to student
+                      {String(complaint.adminResponse || "").trim() !== ""
+                        ? "Redponded to student"
+                        : "Response to student"}
                     </label>
                     <textarea
                       id={`response-${complaint._id}`}
