@@ -539,7 +539,7 @@ function AdminDashboard() {
                   </div>
 
                   {complaint.status !== "resolved" && (
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-start">
                       <button
                         onClick={() =>
                           updateStatus(complaint._id, "resolved")
