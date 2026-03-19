@@ -24,6 +24,8 @@ function Dashboard() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState("");
   const [idCardFile, setIdCardFile] = useState(null);
+  const getReverifyKey = (email) =>
+    email ? `ccb_force_reverify_${String(email).toLowerCase()}` : "";
 
   useEffect(() => {
     // Restore student session (if any)
@@ -50,6 +52,7 @@ function Dashboard() {
     localStorage.removeItem("ccb_student_user");
     setVerificationStatus("unknown");
     setIdCardFile(null);
+    setVerifyError("");
   };
 
   const handleIdCardChange = (event) => {
@@ -59,10 +62,20 @@ function Dashboard() {
     if (nextFile) {
       // Force fresh verification for every new upload attempt.
       setVerificationStatus("unverified");
+      const reverifyKey = getReverifyKey(studentUser?.email);
+      if (reverifyKey) {
+        localStorage.setItem(reverifyKey, "1");
+      }
     }
   };
 
   const fetchVerificationStatus = async (email) => {
+    const reverifyKey = getReverifyKey(email);
+    if (reverifyKey && localStorage.getItem(reverifyKey) === "1") {
+      setVerificationStatus("unverified");
+      return;
+    }
+
     try {
       const res = await axios.get(`${API_BASE}/api/students/verify/status`, {
         params: { email },
@@ -95,19 +108,30 @@ function Dashboard() {
         `${API_BASE}/api/students/verify`,
         formData
       );
+      const reverifyKey = getReverifyKey(studentUser.email);
 
       if (res.data?.verified) {
         setVerificationStatus("verified");
+        if (reverifyKey) {
+          localStorage.removeItem(reverifyKey);
+        }
       } else {
         setVerificationStatus("unverified");
         setVerifyError(
           "Verification failed. Please upload a clearer ID card."
         );
+        if (reverifyKey) {
+          localStorage.setItem(reverifyKey, "1");
+        }
       }
     } catch (error) {
       console.log(error);
       setVerifyError("Verification failed. Please try again.");
       setVerificationStatus("unverified");
+      const reverifyKey = getReverifyKey(studentUser?.email);
+      if (reverifyKey) {
+        localStorage.setItem(reverifyKey, "1");
+      }
     } finally {
       setVerifyLoading(false);
     }
