@@ -85,6 +85,10 @@ const getLocationEligibility = (value) => {
   return { ok: true, reason: "" };
 };
 
+const ANONYMOUS_COMPLAINT_TYPES = new Set(["Ragging", "Faculty"]);
+const isAnonymousType = (value) =>
+  ANONYMOUS_COMPLAINT_TYPES.has(String(value || "").trim());
+
 function ComplaintPage() {
 
   const navigate = useNavigate();
@@ -106,6 +110,7 @@ function ComplaintPage() {
   const [activeComplaint, setActiveComplaint] = useState(null);
   const [complaintHistory, setComplaintHistory] = useState([]);
   const fileInputRef = useRef(null);
+  const shouldSubmitAnonymously = isAnonymousType(type);
 
   useEffect(() => {
     // Restore student session (if any)
@@ -262,7 +267,7 @@ function ComplaintPage() {
         setError(eligibility.reason);
         return;
       }
-      if (!file) {
+      if (!file && !shouldSubmitAnonymously) {
         setError("Complaint image is required.");
         return;
       }
@@ -274,6 +279,7 @@ function ComplaintPage() {
       formData.append("type", type);
       formData.append("description", description);
       formData.append("location", location);
+      formData.append("isAnonymous", String(shouldSubmitAnonymously));
       if (file) {
         formData.append("image", file);
       }
@@ -493,9 +499,14 @@ function ComplaintPage() {
             <option value="Faculty">Faculty Issue</option>
             <option value="Infrastructure">Infrastructure</option>
             <option value="Ragging">Ragging</option>
-            <option value="Administration">Administration</option>
+            <option value="Mess/Hostel">Mess/Hostel</option>
             <option value="Other">Other</option>
           </select>
+          {shouldSubmitAnonymously && (
+            <p className="text-sm text-amber-200">
+              This complaint type is auto-submitted as anonymous.
+            </p>
+          )}
 
           {/* Description */}
           <textarea
@@ -540,7 +551,7 @@ function ComplaintPage() {
           {/* File Upload */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-100">
-              Upload Evidence (Required)
+              Upload Evidence {shouldSubmitAnonymously ? "(Optional)" : "(Required)"}
             </label>
             <input
               ref={fileInputRef}
@@ -555,9 +566,9 @@ function ComplaintPage() {
                 verificationLoading ||
                 verificationStatus !== "verified"
               }
-              required
+              required={!shouldSubmitAnonymously}
             />
-            {!file && (
+            {!file && !shouldSubmitAnonymously && (
               <p className="text-xs text-amber-200">
                 Please select an image before submitting.
               </p>

@@ -229,7 +229,7 @@ function AdminDashboard() {
         .includes(normalizedStudentIdFilter);
     const matchesStudentName =
       normalizedStudentNameFilter.length === 0 ||
-      String(item.studentName || "")
+      String(item.isAnonymous ? "Anonymous" : item.studentName || "")
         .toLowerCase()
         .includes(normalizedStudentNameFilter);
     const matchesSearch =
@@ -482,11 +482,15 @@ function AdminDashboard() {
                     </p>
                     <p>
                       <span className="text-slate-200">Student Name:</span>{" "}
-                      {complaint.studentName || "â€”"}
+                      {complaint.isAnonymous
+                        ? "Anonymous"
+                        : complaint.studentName || "â€”"}
                     </p>
                     <p>
                       <span className="text-slate-200">Email:</span>{" "}
-                      {complaint.studentEmail || "â€”"}
+                      {complaint.isAnonymous
+                        ? "Hidden for anonymous complaint"
+                        : complaint.studentEmail || "â€”"}
                     </p>
                     <p>
                       <span className="text-slate-200">Location:</span>{" "}

@@ -4,6 +4,7 @@ const StudentVerification = require("../models/studentVerification");
 const { uploadComplaintImage } = require("../config/cloudinary");
 
 const ALLOWED_STATUSES = new Set(["pending", "resolved", "done"]);
+const ANONYMOUS_COMPLAINT_TYPES = new Set(["ragging", "faculty"]);
 const ALLOWED_COMPLAINT_LAT = Number(process.env.ALLOWED_COMPLAINT_LAT);
 const ALLOWED_COMPLAINT_LNG = Number(process.env.ALLOWED_COMPLAINT_LNG);
 const ALLOWED_COMPLAINT_RADIUS_METERS = Number(
@@ -45,6 +46,19 @@ const parseCoordinates = (value) => {
   return { lat, lng };
 };
 
+const shouldAutoAnonymous = (typeValue) =>
+  ANONYMOUS_COMPLAINT_TYPES.has(String(typeValue || "").trim().toLowerCase());
+
+const parseBoolean = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "true" || normalized === "1";
+  }
+  if (typeof value === "number") return value === 1;
+  return false;
+};
+
 /* Create Complaint */
 const createComplaint = async (req, res) => {
 
@@ -58,6 +72,7 @@ const createComplaint = async (req, res) => {
       type,
       description,
       location,
+      isAnonymous,
     } = body;
 
     if (
@@ -107,7 +122,10 @@ const createComplaint = async (req, res) => {
       });
     }
 
-    if (!req.file) {
+    const autoAnonymous = shouldAutoAnonymous(type);
+    const anonymous = autoAnonymous || parseBoolean(isAnonymous);
+
+    if (!req.file && !autoAnonymous) {
       return res.status(400).json({
         message: "Missing required file",
         error: "image is required",
@@ -138,14 +156,17 @@ const createComplaint = async (req, res) => {
       });
     }
 
-    let uploadResult;
-    try {
-      uploadResult = await uploadComplaintImage(req.file);
-    } catch (uploadError) {
-      return res.status(500).json({
-        message: "Image upload failed",
-        error: uploadError?.message ?? String(uploadError),
-      });
+    let imageUrl = "";
+    if (req.file) {
+      try {
+        const uploadResult = await uploadComplaintImage(req.file);
+        imageUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        return res.status(500).json({
+          message: "Image upload failed",
+          error: uploadError?.message ?? String(uploadError),
+        });
+      }
     }
 
     const complaint = new Complaint({
@@ -157,7 +178,8 @@ const createComplaint = async (req, res) => {
       description,
       location,
       complaintTime: new Date(),
-      image: uploadResult.secure_url
+      image: imageUrl,
+      isAnonymous: anonymous,
 
     });
 

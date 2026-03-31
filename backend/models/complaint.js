@@ -33,7 +33,12 @@ const complaintSchema = new mongoose.Schema({
 
   image: {
     type: String,
-    required: true
+    default: ""
+  },
+
+  isAnonymous: {
+    type: Boolean,
+    default: false
   },
 
   location: {
